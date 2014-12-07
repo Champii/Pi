@@ -8,8 +8,11 @@ Modulator = require './Modulator'
 bus = require './server/bus'
 Resources = require './server/resources'
 Routes = require './server/routes'
-Socket = require './server/socket/socket'
+Sockets = require './server/socket/socket'
 Processors = require './server/processors'
+expressSession = require 'express-session'
+RedisStore = require('connect-redis')(expressSession)
+
 
 app = Modulator.app
 
@@ -39,6 +42,17 @@ app.use require('connect-cachify').setup MakeAssetsList(),
 
 app.use Modulator.express.static path.resolve piRoot, 'public'
 
+sessionStore = new RedisStore
+  host: 'localhost'
+
+app.use expressSession
+  key: 'pi'
+  secret: 'pi'
+  store: sessionStore
+  resave: true
+  saveUninitialized: true
+
+
 app.set 'views', path.resolve piRoot, 'public/views'
 app.engine '.jade', require('jade').__express
 app.set 'view engine', 'jade'
@@ -47,7 +61,7 @@ Resources.mount()
 
 Routes.mount app
 
-Socket.init Modulator.server
+Sockets.init Modulator.server, sessionStore, Modulator.passport
 
 Processors.init()
 

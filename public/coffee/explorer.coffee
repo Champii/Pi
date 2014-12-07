@@ -13,6 +13,13 @@ pi.service 'dirService', [
           @current = data
           done data if done?
 
+    socket.on 'updateFile', (f) =>
+      console.log 'Update file percentage !', f
+      file = _(@current.child).findWhere {id: f.id, file: true}
+
+      if file?
+        file = _(file).extend(f)
+
     @refresh = ->
       @fetch @current.id
 
@@ -43,6 +50,7 @@ pi.directive 'piExplorer', [
             console.log scope.uploader
 
             scope.dirService = dirService
+            scope.userService = userService
 
             scope.newDirName = ''
 
@@ -65,50 +73,23 @@ pi.directive 'piExplorer', [
               dirService.fetch id, (dir) ->
                 scope.path =  scope.path.split('/')[...-2].join('/') + '/'
 
-            scope.uploader.onWhenAddingFileFailed = (item, filter, options) -> #{File|FileLikeObject}
-              console.info "onWhenAddingFileFailed", item, filter, options
-              return
+            scope.upgrade = (file) ->
+              if file.percentage < 100
+                return
+              $http.put '/api/1/files/' + file.id , {storeLevel: file.storeLevel + 1}
+                .success ->
+                  dirService.refresh()
+
 
             scope.uploader.onAfterAddingFile = (fileItem) ->
               console.info "onAfterAddingFile", fileItem
               fileItem.upload()
               return
 
-            scope.uploader.onAfterAddingAll = (addedFileItems) ->
-              console.info "onAfterAddingAll", addedFileItems
-              return
-
-            scope.uploader.onBeforeUploadItem = (item) ->
-              console.info "onBeforeUploadItem", item
-              return
-
-            scope.uploader.onProgressItem = (fileItem, progress) ->
-              console.info "onProgressItem", fileItem, progress
-              return
-
-            scope.uploader.onProgressAll = (progress) ->
-              console.info "onProgressAll", progress
-              return
-
-            scope.uploader.onSuccessItem = (fileItem, response, status, headers) ->
-              console.info "onSuccessItem", fileItem, response, status, headers
-              return
-
-            scope.uploader.onErrorItem = (fileItem, response, status, headers) ->
-              console.info "onErrorItem", fileItem, response, status, headers
-              return
-
-            scope.uploader.onCancelItem = (fileItem, response, status, headers) ->
-              console.info "onCancelItem", fileItem, response, status, headers
-              return
-
             scope.uploader.onCompleteItem = (fileItem, response, status, headers) ->
-              console.info "onCompleteItem", fileItem, response, status, headers
+              dirService.refresh()
               return
 
-            scope.uploader.onCompleteAll = ->
-              console.info "onCompleteAll"
-              return
         }
 
       }

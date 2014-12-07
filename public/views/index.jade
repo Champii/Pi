@@ -1,22 +1,386 @@
+doctype html
 html
-  head
+head
+    meta(charset='UTF-8')
+    title AdminLTE | Dashboard
+    meta(content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no', name='viewport')
+    link(href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css', rel='stylesheet', type='text/css')
+    link(href='//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css', rel='stylesheet', type='text/css')
+    // Ionicons
+    link(href='//code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css', rel='stylesheet', type='text/css')
+    // HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries
+    // WARNING: Respond.js doesn't work if you view the page via file://
+    //if lt IE 9
+      script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
+        script(src='https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js')
     | !{cachify_css('/css/pi.min.css')}
     script.
       var __user = !{JSON.stringify(user)};
 
-
-  body(ng-app="pi")
-
+  body.skin-blue(ng-app="pi")
     | !{cachify_js('/js/pi.min.js')}
+    // header logo: style can be found in header.less
+    header.header
+      a.logo(href='index.jade')
+        // Add the class icon to your logo image or logo icon to add the margining
+        | Pi
+      // Header Navbar: style can be found in header.less
+      nav.navbar.navbar-static-top(role='navigation')
+        // Sidebar toggle button
+        a.navbar-btn.sidebar-toggle(href='#', data-toggle='offcanvas', role='button')
+          span.sr-only Toggle navigation
+                span.icon-bar
+                span.icon-bar
+                span.icon-bar
+        .navbar-right
+          ul.nav.navbar-nav
+            // Messages: style can be found in dropdown.less
+            li.dropdown.messages-menu
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i.fa.fa-envelope
+                span.label.label-success 4
+              ul.dropdown-menu
+                li.header You have 4 messages
+                li
+                  // inner menu: contains the actual data
+                  ul.menu
+                    li
+                      // start message
+                      a(href='#')
+                        .pull-left
+                          img.img-circle(src='img/avatar3.png', alt='User Image')
+                          h4
+                          | Support Team
+                          small
+                            i.fa.fa-clock-o
+                            |  5 mins
+                            p Why not buy a new awesome theme?
+                    // end message
+                    li
+                      a(href='#')
+                        .pull-left
+                          img.img-circle(src='img/avatar2.png', alt='user image')
+                          h4
+                          | AdminLTE Design Team
+                          small
+                            i.fa.fa-clock-o
+                            |  2 hours
+                            p Why not buy a new awesome theme?
+                        li
+                      a(href='#')
+                        .pull-left
+                          img.img-circle(src='img/avatar.png', alt='user image')
+                          h4
+                          | Developers
+                          small
+                            i.fa.fa-clock-o
+                            |  Today
+                            p Why not buy a new awesome theme?
+                        li
+                      a(href='#')
+                        .pull-left
+                          img.img-circle(src='img/avatar2.png', alt='user image')
+                          h4
+                          | Sales Department
+                          small
+                            i.fa.fa-clock-o
+                            |  Yesterday
+                            p Why not buy a new awesome theme?
+                        li
+                      a(href='#')
+                        .pull-left
+                          img.img-circle(src='img/avatar.png', alt='user image')
+                          h4
+                          | Reviewers
+                          small
+                            i.fa.fa-clock-o
+                            |  2 days
+                            p Why not buy a new awesome theme?
+                li.footer
+                  a(href='#') See All Messages
+            // Notifications: style can be found in dropdown.less
+            li.dropdown.notifications-menu
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i.fa.fa-warning
+                span.label.label-warning 10
+              ul.dropdown-menu
+                li.header You have 10 notifications
+                li
+                  // inner menu: contains the actual data
+                  ul.menu
+                    li
+                      a(href='#')
+                        i.ion.ion-ios7-people.info
+                        |  5 new members joined today
+                        li
+                      a(href='#')
+                        i.fa.fa-warning.danger
+                        |  Very long description here that may not fit into the page and may cause design problems
+                        li
+                      a(href='#')
+                        i.fa.fa-users.warning
+                        |  5 new members joined
+                        li
+                      a(href='#')
+                        i.ion.ion-ios7-cart.success
+                        |  25 sales made
+                        li
+                      a(href='#')
+                        i.ion.ion-ios7-person.danger
+                        |  You changed your username
+                li.footer
+                  a(href='#') View all
+            // Tasks: style can be found in dropdown.less
+            li.dropdown.tasks-menu
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i.fa.fa-tasks
+                span.label.label-danger 9
+              ul.dropdown-menu
+                li.header You have 9 tasks
+                li
+                  // inner menu: contains the actual data
+                  ul.menu
+                    li
+                      // Task item
+                      a(href='#')
+                        h3
+                          | Design some buttons
+                          small.pull-right 20%
+                                .progress.xs
+                          .progress-bar.progress-bar-aqua(style='width: 20%', role='progressbar', aria-valuenow='20', aria-valuemin='0', aria-valuemax='100')
+                            span.sr-only 20% Complete
+                    // end task item
+                    li
+                      // Task item
+                      a(href='#')
+                        h3
+                          | Create a nice theme
+                          small.pull-right 40%
+                                .progress.xs
+                          .progress-bar.progress-bar-green(style='width: 40%', role='progressbar', aria-valuenow='20', aria-valuemin='0', aria-valuemax='100')
+                            span.sr-only 40% Complete
+                    // end task item
+                    li
+                      // Task item
+                      a(href='#')
+                        h3
+                          | Some task I need to do
+                          small.pull-right 60%
+                                .progress.xs
+                          .progress-bar.progress-bar-red(style='width: 60%', role='progressbar', aria-valuenow='20', aria-valuemin='0', aria-valuemax='100')
+                            span.sr-only 60% Complete
+                    // end task item
+                    li
+                      // Task item
+                      a(href='#')
+                        h3
+                          | Make beautiful transitions
+                          small.pull-right 80%
+                                .progress.xs
+                          .progress-bar.progress-bar-yellow(style='width: 80%', role='progressbar', aria-valuenow='20', aria-valuemin='0', aria-valuemax='100')
+                            span.sr-only 80% Complete
+                    // end task item
+                li.footer
+                  a(href='#') View all tasks
+            // User Account: style can be found in dropdown.less
+            li.dropdown.user.user-menu
+              a.dropdown-toggle(href='#', data-toggle='dropdown')
+                i.glyphicon.glyphicon-user
+                span
+                  | Jane Doe
+                  i.caret
+              ul.dropdown-menu
+                li.user-header.bg-light-blue
+                  img.img-circle(src='img/avatar3.png', alt='User Image')
+                  p
+                    | Jane Doe - Web Developer
+                    small Member since Nov. 2012
+                // Menu Footer
+                li.user-footer
+                  .pull-left
+                    a.btn.btn-default.btn-flat(href='#') Profile
+                    .pull-right
+                    a.btn.btn-default.btn-flat(href='#') Sign out
+    .wrapper.row-offcanvas.row-offcanvas-left
+      // Left side column. contains the logo and sidebar
+      aside.left-side.sidebar-offcanvas
+        // sidebar: style can be found in sidebar.less
+        section.sidebar
+          // Sidebar user panel
+          .user-panel
+            .pull-left.image
+              img.img-circle(src='img/avatar3.png', alt='User Image')
+            .pull-left.info
+              p Hello, Jane
+              a(href='#')
+                i.fa.fa-circle.text-success
+                |  Online
+          // search form
+          form.sidebar-form(action='#', method='get')
+            .input-group
+              input.form-control(type='text', name='q', placeholder='Search...')
+              span.input-group-btn
+                button#search-btn.btn.btn-flat(type='submit', name='search')
+                  i.fa.fa-search
+          // /.search form
+          // sidebar menu: : style can be found in sidebar.less
+          ul.sidebar-menu
+            li.active
+              a(href='index.jade')
+                i.fa.fa-dashboard
+                span Dashboard
+            //- li
+            //-   a(href='pages/widgets.jade')
+            //-     i.fa.fa-th
+            //-     span Widgets
+            //-     small.badge.pull-right.bg-green new
+            //- li.treeview
+            //-   a(href='#')
+            //-     i.fa.fa-bar-chart-o
+            //-     span Charts
+            //-     i.fa.fa-angle-left.pull-right
+            //-   ul.treeview-menu
+            //-     li
+            //-       a(href='pages/charts/morris.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Morris
+            //-     li
+            //-       a(href='pages/charts/flot.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Flot
+            //-     li
+            //-       a(href='pages/charts/inline.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Inline charts
+            //- li.treeview
+            //-   a(href='#')
+            //-     i.fa.fa-laptop
+            //-     span UI Elements
+            //-     i.fa.fa-angle-left.pull-right
+            //-   ul.treeview-menu
+            //-     li
+            //-       a(href='pages/UI/general.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  General
+            //-     li
+            //-       a(href='pages/UI/icons.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Icons
+            //-     li
+            //-       a(href='pages/UI/buttons.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Buttons
+            //-     li
+            //-       a(href='pages/UI/sliders.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Sliders
+            //-     li
+            //-       a(href='pages/UI/timeline.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Timeline
+            //- li.treeview
+            //-   a(href='#')
+            //-     i.fa.fa-edit
+            //-     span Forms
+            //-     i.fa.fa-angle-left.pull-right
+            //-   ul.treeview-menu
+            //-     li
+            //-       a(href='pages/forms/general.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  General Elements
+            //-     li
+            //-       a(href='pages/forms/advanced.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Advanced Elements
+            //-     li
+            //-       a(href='pages/forms/editors.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Editors
+            //- li.treeview
+            //-   a(href='#')
+            //-     i.fa.fa-table
+            //-     span Tables
+            //-     i.fa.fa-angle-left.pull-right
+            //-   ul.treeview-menu
+            //-     li
+            //-       a(href='pages/tables/simple.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Simple tables
+            //-     li
+            //-       a(href='pages/tables/data.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Data tables
+            //- li
+            //-   a(href='pages/calendar.jade')
+            //-     i.fa.fa-calendar
+            //-     span Calendar
+            //-     small.badge.pull-right.bg-red 3
+            //- li
+            //-   a(href='pages/mailbox.jade')
+            //-     i.fa.fa-envelope
+            //-     span Mailbox
+            //-     small.badge.pull-right.bg-yellow 12
+            //- li.treeview
+            //-   a(href='#')
+            //-     i.fa.fa-folder
+            //-     span Examples
+            //-     i.fa.fa-angle-left.pull-right
+            //-   ul.treeview-menu
+            //-     li
+            //-       a(href='pages/examples/invoice.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Invoice
+            //-     li
+            //-       a(href='pages/examples/login.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Login
+            //-     li
+            //-       a(href='pages/examples/register.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Register
+            //-     li
+            //-       a(href='pages/examples/lockscreen.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Lockscreen
+            //-     li
+            //-       a(href='pages/examples/404.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  404 Error
+            //-     li
+            //-       a(href='pages/examples/500.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  500 Error
+            //-     li
+            //-       a(href='pages/examples/blank.jade')
+            //-         i.fa.fa-angle-double-right
+            //-         |  Blank Page
+        // /.sidebar
+      // Right side column. Contains the navbar and content of the page
+      aside.right-side
+        // Content Header (Page header)
+        section.content-header
+          h1
+            | Dashboard
+            small Control panel
+          ol.breadcrumb
+            li
+              a(href='#')
+                i.fa.fa-dashboard
+                |  Home
+            li.active Dashboard
+        // Main content
+        section.content
 
-    pi-auth
-    pi-app
+          pi-app
+
+        // /.content
+      // /.right-side
+    // ./wrapper
+    // add new calendar event modal
+    script(src='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js', type='text/javascript')
 
     script#app-tpl(type="text/ng-template")
       include templates/app
-
-    script#auth-tpl(type="text/ng-template")
-      include templates/auth
 
     script#explorer-tpl(type="text/ng-template")
       include templates/explorer

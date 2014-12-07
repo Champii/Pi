@@ -1,10 +1,9 @@
 div
-  |Current: {{path}}
   div
     input(type="text", ng-model="newDirName", placeholder="New Folder")
     button(ng-click="createDir()") New Folder
   div
-    input(type="file", uploader="uploader", nv-file-select="")
+    input(type="file", uploader="uploader", nv-file-select="", options="{formData: [{parent_id: dirService.current.id, client_id: userService.current.id}]}")
     //- table
     //-   thead
     //-     tr
@@ -44,11 +43,62 @@ div
     //-         {{file.isComplete()}}
     //-       td
     //-         {{file.msg()}}
+
   div
-    a(ng-click="parent(dirService.current.parent_id)", ng-show="dirService.current.parent_id")
-      | ..
-    div(ng-repeat="dir in dirService.current.child")
-      a(ng-click="enter(dir.id)")
-        | {{dir.name}}
-    div(ng-show="!dirService.current.child.length")
-      | (Empty)
+    .box
+    .box-header
+      h3.box-title {{path}}
+      // /.box-header
+    .box-body.no-padding
+      table.table.table-condensed
+        tr
+          th(style='width: 10px') #
+          th Name
+          th Size
+          th Size In Pi
+          th Progress
+          th(style='width: 40px') StoreLevel
+        tr(ng-show="dirService.current.parent_id")
+          td
+          td
+            a(href="", ng-click="parent(dirService.current.parent_id)")
+              | ..
+        tr(ng-repeat="dir in dirService.current.child | orderBy:'name'")
+          td {{dir.id}}.
+          td(ng-if="dir.file")
+            a(href="/api/1/files/{{dir.id}}" ng-if="dir.percentage == 100")
+              | {{dir.name}}
+            div(ng-if="dir.percentage < 100")
+              | {{dir.name}}
+          td(ng-if="!dir.file")
+            a(href="", ng-click="enter(dir.id)")
+              {{dir.name}}/
+          td
+            spawn(ng-if="dir.file")
+              {{dir.size}}
+          td
+            spawn(ng-if="dir.file")
+              {{dir.size / dir.storeLevel}}
+          td
+            .progress.xs(ng-if="dir.percentage < 100")
+              .progress-bar(ng-class="{'progress-bar-danger': dir.storeLevel === 4, 'progress-bar-yellow': dir.storeLevel === 3, 'progress-bar-green': dir.storeLevel === 2, 'progress-bar-light-blue': dir.storeLevel === 1 }", style='width: {{dir.percentage}}%')
+          td
+            a(ng-click="upgrade(dir)")
+              span.badge(ng-class="{'bg-red': dir.storeLevel === 4, 'bg-yellow': dir.storeLevel === 3, 'bg-green': dir.storeLevel === 2, 'bg-light-blue': dir.storeLevel === 1 }") {{dir.storeLevel}}
+
+        tr(ng-show="!dirService.current.child.length")
+          td
+          td (Empty)
+
+    //- a(href="", ng-click="parent(dirService.current.parent_id)", ng-show="dirService.current.parent_id")
+    //-   | ..
+    //- div(ng-repeat="dir in dirService.current.child | orderBy:'name'")
+    //-   a(href="", ng-click="enter(dir.id)", ng-if="!dir.file")
+    //-     | {{dir.name}}/
+    //-   div(ng-if="dir.file")
+    //-     div(ng-if="dir.percentage < 100")
+    //-       | {{dir.name}} - {{dir.percentage}} %
+    //-     a(href="/api/1/files/{{dir.id}}" ng-if="dir.percentage == 100")
+    //-       | {{dir.name}}
+    //- div(ng-show="!dirService.current.child.length")
+    //-   | (Empty)

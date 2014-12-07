@@ -9,14 +9,16 @@
       return res.status(200).end();
     });
     return app.get('*', function(req, res) {
-      var u;
+      var rend, u;
       u = {
         user: {}
       };
+      rend = 'auth';
       if (req.user != null) {
         u.user = req.user;
+        rend = 'index';
       }
-      return res.render('index', u);
+      return res.render(rend, u);
     });
   };
 

@@ -1,73 +1,43 @@
 _ = require 'underscore'
 socket = require 'socket.io'
+passportSocketIO = require("passport.socketio");
+
+cookieParser = require('cookie-parser')
 
 bus = require '../bus'
 
 sockets = []
-exports.init = (server) ->
-  io = socket.listen server, log: true
-  # io = socket.listen server, log: false
 
-  # io.sockets.on 'connection', (socket) ->
-  #   console.log 'new connection'
-  #   socket.once 'playerId', (playerId) ->
-  #     sockets[playerId - 1] = socket
-  #     socket.join 'player-' + playerId
+exports.init = (server, store, passport) ->
+  io = socket.listen server
 
-  #     if sockets.length is 2
-  #       RoomResource.Fetch 1, (err, room) ->
-  #         return console.error err if err?
-  #         bus.emit 'playersEnterRoom', room, room.players
+  onAuthorizeSuccess = (data, accept) ->
+    accept(null, true);
 
-  #     # socket.join 'lobby'
+  onAuthorizeFail = (data, message, error, accept) ->
+    return accept new Error message if error
 
-  #   socket.emit 'playerId'
+    accept(null, false);
 
-  #   socket.once 'disconnect', () ->
-  #     sockets = _(sockets).reject (item) -> item is socket
+  io.use passportSocketIO.authorize
+    passport:       passport
+    cookieParser:   cookieParser
+    key:            'pi'
+    secret:         'pi'
+    store:          store
+    success:        onAuthorizeSuccess
+    fail:           onAuthorizeFail
 
-  # addToRoom = (room, socket) ->
-  #   if not socket?
-  #     console.log 'SOCKET NOT FOUND'
-  #     return
+  io.sockets.on 'connection', (socket) ->
 
-  #   socket.join 'room-' + room.id
-  #   socket.leave 'lobby'
+    console.log socket.request
+    socket.join 'client-' + socket.request.user.id
 
-  # emitPlayer = (playerId, type, message, arg1, arg2) ->
-  #   io.sockets.in('player-' + playerId).emit type, message, arg1, arg2
-
-  # emitLobby = (type, message, arg1, arg2) ->
-  #   io.sockets.in('lobby').emit type, message, arg1, arg2
-
-  # emitRoom = (roomId, type, message, arg1, arg2) ->
-  #   console.log 'Emitroom', roomId
-  #   io.sockets.in('room-' + roomId).emit type, message, arg1, arg2
-
-  # bus.on 'playerEnterLobby', (player) ->
-  #   emitLobby 'playerEnterLobby', player
-
-  # bus.on 'playerLeaveLobby', (player) ->
-  #   emitLobby 'playerLeaveLobby', player
-
-  # bus.on 'playersEnterRoom', (room, players) ->
-  #   console.log 'EnterRoom', room, players, players[0]
-  #   addToRoom room, sockets[players[0].id - 1]
-  #   addToRoom room, sockets[players[1].id - 1]
-  #   # emitRoom room.id, 'playersEnterRoom', room, players
+    socket.once 'disconnect', () ->
 
 
+  bus.on 'updateFile', (file) ->
+    emitClient file.client_id, 'updateFile', file
 
-  # ### Game specific ###
-  # bus.on 'startGame', (room) ->
-  #   console.log 'startGame'
-  #   emitRoom room.id, 'startGame'
-  #   room.players[0].socket = sockets[room.players[0].id - 1]
-  #   room.players[1].socket = sockets[room.players[1].id - 1]
-
-  #   # StartGame !
-  #   game room
-
-  # # bus.on 'newTower', (tower) ->
-  # #   console.log 'newTower', tower
-  # #   emitRoom tower.roomId, 'newTower', tower
+  emitClient = (clientId, args...) ->
+    io.sockets.in('client-' + clientId).emit.apply io.sockets.in('client-' + clientId), args

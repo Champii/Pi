@@ -9,10 +9,12 @@ exports.mount = (app) ->
 
     u =
       user: {}
+    rend = 'auth'
     if req.user?
       u.user = req.user
+      rend = 'index'
     # console.log 'Userid', req.user
-    res.render 'index', u
+    res.render rend, u
 
 
     # user = {}

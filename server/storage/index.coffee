@@ -1,56 +1,56 @@
 fs = require 'fs'
+exec = require('child_process').exec
+require('buffertools').extend()
 
 class PiFS
-
-  @CHUNK_SIZE: 1
 
   constructor: ->
     @pi = fs.readFileSync './server/storage/pi2'
 
   GetFile: (hash) ->
-    file = new Buffer hash.idx.length * hash.chunkSize
+    file = new Buffer hash.idx.length * hash.storeLevel
     for v, i in hash.idx
-      @pi.copy file, i * hash.chunkSize, v, v + hash.chunkSize
+      @pi.copy file, i * hash.storeLevel, v, v + hash.storeLevel
     file
 
-  IsEqual: (a, b) ->
-    # return undefined if not Buffer.isBuffer a
-    # return undefined if not Buffer.isBuffer b
-    # return a.equals(b) if typeof a.equals is 'function'
-    # return false if a.length isnt b.length
+  GetHash: (file, path, done) ->
+    exec 'coffee ./server/storage/async_run.coffee ' + path + ' ' +  file.id + ' ' + file.storeLevel, (err, stdout, stderr) ->
+      return done err if err?
 
-    for v, i in a
-      # console.log i, v, b, b[i]
-      if v isnt b[i]
-        return false
+      res = fs.readFileSync '/tmp/' + file.id
 
-    true
+      if res.toString() is 'Error not found'
+        return done 'Error not found'
 
-  GetHash: (file) ->
-    fileBuffer = fs.readFileSync file.path
-    hash = {name: file.name, chunkSize: PiFS.CHUNK_SIZE, idx: []}
-    percent = 0
-    for i in [0...fileBuffer.length] by PiFS.CHUNK_SIZE
-      chunk = new Buffer PiFS.CHUNK_SIZE
-      fileBuffer.copy chunk, 0, i, i + PiFS.CHUNK_SIZE
+      done null, res
+
+  _GetHash: (path, id, storeLevel) ->
+    fs.writeFileSync '/tmp/' + id, 0 + ''
+
+    fileBuffer = fs.readFileSync path
+    hash = {id: id, storeLevel: storeLevel, idx: [], percent: 0}
+    for i in [0...fileBuffer.length] by hash.storeLevel
+      chunk = new Buffer hash.storeLevel + 1
+      fileBuffer.copy chunk, 0, i, i + hash.storeLevel
 
       j = 0
-      buffer = new Buffer PiFS.CHUNK_SIZE
-      while (@pi.copy(buffer, 0, j, j + PiFS.CHUNK_SIZE) or true) and not @IsEqual(chunk, buffer) and j + PiFS.CHUNK_SIZE < @pi.length
-        j++
+      if (j = @pi.indexOf(chunk)) is -1
+        fs.writeFileSync '/tmp/' + id, 'Error not found'
+        return console.error 'Error not found'
 
-      if not @IsEqual(chunk, buffer) and j >= @pi.length
-        console.error 'Error not found', chunk, buffer
-        return
-
-      old = percent
-      percent = ((i / fileBuffer.length) * 100).toFixed 2
-      process.stdout.write percent + "%\r" if percent isnt old
-
+      old = hash.percent
+      hash.percent = Math.floor((i / fileBuffer.length) * 100)
 
       hash.idx.push j
 
-    hash
+      fs.writeFileSync '/tmp/' + id, hash.percent + '' if hash.percent isnt old
+    fs.writeFileSync '/tmp/' + id, JSON.stringify hash
+
+  GetPercentage: (id, done) ->
+    fs.readFile '/tmp/' + id, (err, file) ->
+      return done err if err?
+
+      done null, file.toString()
 
 module.exports = new PiFS
 

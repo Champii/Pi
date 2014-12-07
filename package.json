@@ -9,12 +9,19 @@
     "underscore": "*",
     "decimal.js": "*",
     "connect-cachify": "*",
+    "buffertools": "*",
+    "cookie-parser": "*",
     "coffee-middleware": "*",
+    "express": "*",
+    "express-session": "*",
+    "passport": "*",
+    "passport.socketio": "*",
     "socket.io": "*",
     "mocha": "*",
     "assert": "*",
     "superagent": "*",
     "supertest": "*",
+    "connect-redis": "*",
     "connect-multiparty": "^1.0.4"
   }
 }

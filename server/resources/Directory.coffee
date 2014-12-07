@@ -3,6 +3,8 @@ async = require 'async'
 
 Modulator = require '../../Modulator'
 
+File = require './File'
+
 class DirectoryRoute extends Modulator.Route.DefaultRoute
   Config: ->
     super()
@@ -33,7 +35,17 @@ class Directory extends Modulator.Resource 'directory', DirectoryRoute
 
       async.map _(ids).pluck('id'), (item, done) =>
         Directory.Fetch item, done
-      , done
+      , (err, dirs) ->
+        return done err if err?
+
+        File.ListBy 'parent_id', id, (err, files) ->
+          return done err if err?
+
+          for file in files
+            file.file = true
+          # console.log files, dirs
+          done null, _(dirs).extend files
+
 
 Directory.Init()
 

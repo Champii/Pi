@@ -1,0 +1,24 @@
+html
+  head
+    | !{cachify_css('/css/pi.min.css')}
+    script.
+      var __user = !{JSON.stringify(user)};
+
+
+  body(ng-app="pi")
+
+    | !{cachify_js('/js/pi.min.js')}
+
+    pi-auth
+    pi-app
+
+    script#app-tpl(type="text/ng-template")
+      include templates/app
+
+    script#auth-tpl(type="text/ng-template")
+      include templates/auth
+
+    script#explorer-tpl(type="text/ng-template")
+      include templates/explorer
+
+    script(src="/socket.io/socket.io.js")
