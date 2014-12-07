@@ -5,9 +5,11 @@ path = require 'path'
 coffeeMiddleware = require 'coffee-middleware'
 Modulator = require './Modulator'
 
+bus = require './server/bus'
 Resources = require './server/resources'
 Routes = require './server/routes'
 Socket = require './server/socket/socket'
+Processors = require './server/processors'
 
 app = Modulator.app
 
@@ -46,3 +48,31 @@ Resources.mount()
 Routes.mount app
 
 Socket.init Modulator.server
+
+Processors.init()
+
+
+# #TESTS
+# fs = require 'fs'
+# PiFS = require './server/storage'
+
+# piFS = new PiFS
+
+# console.time 'hash'
+# hash = piFS.GetHash 'test.txt'
+# console.timeEnd 'hash'
+
+# if hash?
+#   console.log 'Got Hash !', hash.idx.length
+
+#   console.time 'file'
+#   file = piFS.GetFile hash
+#   console.timeEnd 'file'
+#   if file?
+#     console.log 'Got File !', file.length
+#     fs.writeFile './test2.txt', file
+#   else
+#     console.error 'Cannot get file from hash'
+# else
+#   console.error 'Cant get Hash'
+# # console.log 'file', file

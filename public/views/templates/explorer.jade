@@ -1,0 +1,54 @@
+div
+  |Current: {{path}}
+  div
+    input(type="text", ng-model="newDirName", placeholder="New Folder")
+    button(ng-click="createDir()") New Folder
+  div
+    input(type="file", uploader="uploader", nv-file-select="")
+    //- table
+    //-   thead
+    //-     tr
+    //-       th #
+    //-       th Name
+    //-       th Size
+    //-       th Relative Path
+    //-       th Unique Identifier
+    //-       th #Chunks
+    //-       th Progress
+    //-       th Paused
+    //-       th Uploading
+    //-       th Completed
+    //-       th Settings
+    //-       th Message
+    //-   tbody
+    //-     tr(ng-repeat="file in $flow.files")
+    //-       td
+    //-         {{$index+1}}
+    //-       td
+    //-         {{file.name}}
+    //-       td
+    //-         {{file.size}}
+    //-       td
+    //-         {{file.relativePath}}
+    //-       td
+    //-         {{file.uniqueIdentifier}}
+    //-       td
+    //-         {{file.chunks.length}}
+    //-       td
+    //-         {{file.progress()}}
+    //-       td
+    //-         {{file.paused}}
+    //-       td
+    //-         {{file.isUploading()}}
+    //-       td
+    //-         {{file.isComplete()}}
+    //-       td
+    //-         {{file.msg()}}
+  div
+    a(ng-click="parent(dirService.current.parent_id)", ng-show="dirService.current.parent_id")
+      | ..
+    div(ng-repeat="dir in dirService.current.child")
+      a(ng-click="enter(dir.id)")
+        | {{dir.name}}
+    div(ng-show="!dirService.current.child.length")
+      | (Empty)

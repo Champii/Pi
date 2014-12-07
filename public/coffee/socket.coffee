@@ -1,4 +1,4 @@
-dualtd.factory 'socket', ['$rootScope', ($rootScope) ->
+pi.factory 'socket', ['$rootScope', ($rootScope) ->
   socket = io.connect
     reconnection: false
 

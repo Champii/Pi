@@ -1,0 +1,40 @@
+_ = require 'underscore'
+async = require 'async'
+
+Modulator = require '../../Modulator'
+
+class DirectoryRoute extends Modulator.Route.DefaultRoute
+  Config: ->
+    super()
+
+    @Add 'get', '/:id', (req, res) ->
+      Directory.ListChild req.directory.id, (err, dirs) ->
+        return res.status(500).send err if err?
+
+        dir = req.directory.ToJSON()
+        dir.child = _(dirs).invoke 'ToJSON'
+        res.status(200).send dir
+
+    @Add 'post', (req, res) ->
+      Directory.Deserialize req.body, (err, result) ->
+        return res.status(500).send(err) if err?
+
+        result.Save (err) ->
+          return res.status(500).send(err) if err?
+
+          res.status(200).send result.ToJSON()
+
+
+class Directory extends Modulator.Resource 'directory', DirectoryRoute
+
+  @ListChild: (id, done) =>
+    @table.Select 'id', {parent_id: id}, {}, (err, ids) =>
+      return done err if err?
+
+      async.map _(ids).pluck('id'), (item, done) =>
+        Directory.Fetch item, done
+      , done
+
+Directory.Init()
+
+module.exports = Directory

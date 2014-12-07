@@ -7,12 +7,14 @@
     "jade": "*",
     "async": "*",
     "underscore": "*",
+    "decimal.js": "*",
     "connect-cachify": "*",
     "coffee-middleware": "*",
     "socket.io": "*",
     "mocha": "*",
     "assert": "*",
     "superagent": "*",
-    "supertest": "*"
+    "supertest": "*",
+    "connect-multiparty": "^1.0.4"
   }
 }

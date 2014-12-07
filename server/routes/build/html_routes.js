@@ -9,11 +9,14 @@
       return res.status(200).end();
     });
     return app.get('*', function(req, res) {
-      return res.render('index', {
-        user: {
-          id: req.userId
-        }
-      });
+      var u;
+      u = {
+        user: {}
+      };
+      if (req.user != null) {
+        u.user = req.user;
+      }
+      return res.render('index', u);
     });
   };
 

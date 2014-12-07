@@ -1,5 +1,8 @@
 [
   "/coffee/index.js",
   "/coffee/socket.js",
-  "/coffee/app.js"
+  "/coffee/app.js",
+  "/coffee/auth.js",
+  "/coffee/user.js",
+  "/coffee/explorer.js"
 ]

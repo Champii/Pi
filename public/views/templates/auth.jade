@@ -1,0 +1,20 @@
+div(ng-if="!userService.current")
+  div(ng-show="state == 'login'")
+    div
+      input(type="text", ng-model="ident.login", placeholder="Login")
+    div
+      input(type="text", ng-model="ident.pass", placeholder="Password")
+    div
+      button(ng-click="auth()") Login
+  div(ng-show="state == 'signup'")
+    div
+      input(type="text", ng-model="ident.login", placeholder="Login")
+    div
+      input(type="text", ng-model="ident.pass", placeholder="Password")
+    div
+      button(ng-click="signup()") Signup
+  div
+    button(ng-click="toggle()") {{otherState()}}
+  div(ng-show="error.length")
+    {{error}}
+

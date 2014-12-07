@@ -1,1 +1,3 @@
-pi = angular.module 'pi', ['ngRoute']
+pi = angular.module 'pi', ['ngRoute', 'angularFileUpload']
+
+

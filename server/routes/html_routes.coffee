@@ -7,8 +7,12 @@ exports.mount = (app) ->
 
   app.get '*', (req, res) ->
 
-    res.render 'index',
-      user: {id: req.userId}
+    u =
+      user: {}
+    if req.user?
+      u.user = req.user
+    # console.log 'Userid', req.user
+    res.render 'index', u
 
 
     # user = {}

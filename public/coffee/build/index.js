@@ -2,6 +2,6 @@
 (function() {
   var pi;
 
-  pi = angular.module('pi', ['ngRoute']);
+  pi = angular.module('pi', ['ngRoute', 'angularFileUpload']);
 
 }).call(this);
