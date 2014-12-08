@@ -18,6 +18,7 @@ class PiFS
       filePart = Math.floor(v / config.piPartSize)
       if not pi[filePart]?
         pi[filePart] = fs.openSync config.piPath + filePart, 'r'
+        console.log pi
       fs.readSync pi[filePart], file, i * storeLevel, storeLevel, v
       # @pi.copy file, i * storeLevel, v, v + storeLevel
     file
