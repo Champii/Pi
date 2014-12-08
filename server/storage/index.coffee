@@ -34,46 +34,70 @@ class PiFS
       if err.toString() is 'Error not found'
         return done 'Error not found'
 
-      res = fs.readFileSync destPath
-      done null, @BufferToArray32 res
+      fs.readFile destPath, (err, res) =>
+        return done err if err?
+        done null, @BufferToArray32 res
 
   _GetHash: (srcPath, destPath, storeLevel, piFile = 0, srcBuff = null, oldI = 0, oldHash = null) ->
     tmpPath = destPath + '_tmp'
 
-    fs.readFile config.piPath + piFile, (err, pi) =>
-      fs.writeFileSync tmpPath, 'Error not found'
-      return console.error err if err
 
-      fs.writeFileSync tmpPath, 0 + ''
+    if not srcBuff?
+      srcBuffer = fs.readFileSync srcPath
+    else
+      srcBuffer = srcBuff
 
-      if not srcBuff?
-        srcBuffer = fs.readFileSync srcPath
-      else
-        srcBuffer = srcBuff
+    fs.writeFileSync tmpPath, Math.floor((oldI / srcBuffer.length) * 100) + ''
 
-      if not oldHash?
-        hash = []
-      else
-        hash = oldHash
+    if not oldHash?
+      hash = []
+    else
+      hash = oldHash
+
+    fs.open config.piPath + piFile, 'r', (err, piFd) =>
+      console.log 'Open pi', piFile, err, piFd
+      if err?
+        fs.writeFileSync tmpPath, 'Error not found'
+        return console.error err
+
+      console.log 'Pifd', piFd
+      pi = new Buffer config.piFileSlice
+
+      found = false
 
       percent = 0
-      for i in [(0 + oldI)...srcBuffer.length] by storeLevel
+      for i in [oldI...srcBuffer.length] by storeLevel
+
         chunk = new Buffer(storeLevel)
         srcBuffer.copy(chunk, 0, i, i + storeLevel)
 
-        j = 0
-        if (j = pi.indexOf(chunk)) is -1
-          @_GetHash srcPath, destPath, storeLevel, piFile + 1, srcBuffer, i, hash
-          return console.error 'Error not found'
+        sliceCount = 0
+        while config.piFileSlice * sliceCount < config.piPartSize
+          fs.readSync piFd, pi, 0, config.piFileSlice, sliceCount * config.piFileSlice
 
-        old = percent
-        percent = Math.floor((i / srcBuffer.length) * 100)
+          j = 0
+          if (j = pi.indexOf(chunk)) is -1
+            found = false
+            sliceCount++
+            continue
+            # return console.error 'Error not found'
 
-        hash.push j + (piFile * config.piPartSize)
+          found = true
+          old = percent
+          percent = Math.floor((i / srcBuffer.length) * 100)
 
-        fs.writeFileSync tmpPath, percent + '' if percent isnt old
+          hash.push j + (piFile * config.piPartSize) + (sliceCount * config.piFileSlice)
+          sliceCount = 0
+
+          fs.writeFileSync tmpPath, percent + '' if percent isnt old
+          break
+
+        if not found
+          return @_GetHash srcPath, destPath, storeLevel, piFile + 1, srcBuffer, i, hash
 
       fs.writeFileSync destPath, @Array32ToBuffer hash
+
+  FindInPart: () ->
 
   GetPercentage: (destPath, done) ->
     fs.readFile destPath, (err, file) ->

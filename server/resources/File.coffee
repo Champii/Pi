@@ -29,7 +29,7 @@ getHash = (f, srcPath, destPath) ->
             return console.error err if err?
 
             bus.emit 'updateFile', f
-  , 10000
+  , 5000
 
   error = (e) ->
     clearInterval timer
@@ -43,7 +43,6 @@ getHash = (f, srcPath, destPath) ->
 
       if err? and err is 'Error not found'
         if file.isIndexed or file.storeLevel < 5
-          clearInterval timer
           file.percentage = 100
           file.maxLevel = true
           file.Save (err) ->
@@ -56,10 +55,14 @@ getHash = (f, srcPath, destPath) ->
             bus.emit 'updateFile', file if not err?
             # fs.writeFileSync srcPath, piFS.Array32ToBuffer file.hash
             fs.writeFileSync srcPath, fs.readFileSync destPath
-            clearInterval timer
             getHash file, srcPath, destPath
 
+        clearInterval timer
         return console.error err if err?
+      else if err?
+        clearInterval timer
+        return console.error err if err?
+
 
       if file.isIndexed
         file.idxStoreLevel++
@@ -144,7 +147,10 @@ class FileRoute extends Modulator.Route
 class File extends Modulator.Resource 'file', FileRoute
 
   GetHash: ->
-    piFS.BufferToArray32 fs.readFileSync config.hashsPath + @client_id + '/' + @id
+    if @storeLevel
+      piFS.BufferToArray32 fs.readFileSync config.hashsPath + @client_id + '/' + @id
+    else
+      false
 
 
 File.Init()
