@@ -1,56 +1,81 @@
 fs = require 'fs'
 exec = require('child_process').exec
+
+Settings = require 'settings'
+config = new Settings(require '../../settings/config')
 require('buffertools').extend()
 
 class PiFS
 
   constructor: ->
-    @pi = fs.readFileSync './server/storage/pi2'
+    @pi = fs.readFileSync config.piPath
+    # @pi = fs.readFileSync './server/storage/pi'
 
-  GetFile: (hash) ->
-    file = new Buffer hash.idx.length * hash.storeLevel
-    for v, i in hash.idx
-      @pi.copy file, i * hash.storeLevel, v, v + hash.storeLevel
+  GetFile: (hash, storeLevel) ->
+    file = new Buffer(hash.length * storeLevel)
+    for v, i in hash
+      @pi.copy file, i * storeLevel, v, v + storeLevel
     file
 
-  GetHash: (file, path, done) ->
-    exec 'coffee ./server/storage/async_run.coffee ' + path + ' ' +  file.id + ' ' + file.storeLevel, (err, stdout, stderr) ->
+  GetHash: (srcPath, destPath, storeLevel, done) ->
+    exec 'coffee ./server/storage/async_run.coffee ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
       return done err if err?
 
-      res = fs.readFileSync '/tmp/' + file.id
+      err = fs.readFileSync destPath + '_tmp'
+      fs.unlinkSync destPath + '_tmp'
 
-      if res.toString() is 'Error not found'
+
+      if err.toString() is 'Error not found'
         return done 'Error not found'
 
-      done null, res
+      res = fs.readFileSync destPath
+      done null, @BufferToArray32 res
 
-  _GetHash: (path, id, storeLevel) ->
-    fs.writeFileSync '/tmp/' + id, 0 + ''
+  _GetHash: (srcPath, destPath, storeLevel) ->
+    tmpPath = destPath + '_tmp'
+    fs.writeFileSync tmpPath, 0 + ''
 
-    fileBuffer = fs.readFileSync path
-    hash = {id: id, storeLevel: storeLevel, idx: [], percent: 0}
-    for i in [0...fileBuffer.length] by hash.storeLevel
-      chunk = new Buffer hash.storeLevel + 1
-      fileBuffer.copy chunk, 0, i, i + hash.storeLevel
+    srcBuffer = fs.readFileSync srcPath
+
+    hash = []
+    percent = 0
+    for i in [0...srcBuffer.length] by storeLevel
+      chunk = new Buffer(storeLevel)
+      srcBuffer.copy(chunk, 0, i, i + storeLevel)
 
       j = 0
       if (j = @pi.indexOf(chunk)) is -1
-        fs.writeFileSync '/tmp/' + id, 'Error not found'
+        fs.writeFileSync tmpPath, 'Error not found'
         return console.error 'Error not found'
 
-      old = hash.percent
-      hash.percent = Math.floor((i / fileBuffer.length) * 100)
+      old = percent
+      percent = Math.floor((i / srcBuffer.length) * 100)
 
-      hash.idx.push j
+      hash.push j
 
-      fs.writeFileSync '/tmp/' + id, hash.percent + '' if hash.percent isnt old
-    fs.writeFileSync '/tmp/' + id, JSON.stringify hash
+      fs.writeFileSync tmpPath, percent + '' if percent isnt old
 
-  GetPercentage: (id, done) ->
-    fs.readFile '/tmp/' + id, (err, file) ->
+    fs.writeFileSync destPath, @Array32ToBuffer hash
+
+  GetPercentage: (destPath, done) ->
+    fs.readFile destPath, (err, file) ->
       return done err if err?
 
       done null, file.toString()
+
+  Array32ToBuffer: (arr) ->
+    arrBuff = new ArrayBuffer arr.length * 4
+    view = new Uint32Array arrBuff
+    for v, i in arr
+      view[i] = v
+    new Buffer new Uint8Array arrBuff
+
+  BufferToArray32: (buffer) ->
+    ab = new ArrayBuffer buffer.length
+    view = new Uint8Array ab
+    for v, i in buffer
+        view[i] = v
+    Array.prototype.slice.call new Uint32Array ab
 
 module.exports = new PiFS
 

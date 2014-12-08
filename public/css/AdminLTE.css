@@ -56,7 +56,7 @@ body > .header {
 }
 /*right side - contins main content*/
 .right-side {
-  background-color: #f9f9f9;
+  background-color: #5A665F;
   margin-left: 220px;
 }
 /*left side - contains sidebar*/
@@ -110,12 +110,12 @@ body.fixed .wrapper {
   margin-top: 50px;
 }
 body .wrapper {
-  background: #ADADAD;
+  background: #5A665F;
 }
 /* Content */
 .content {
   padding: 20px 15px;
-  background: #ADADAD;
+  background: #818181;
   overflow: auto;
 }
 /* Utility */
@@ -2704,8 +2704,8 @@ Component: timeline
 */
 /* skin-black navbar */
 .skin-blue .navbar {
-  background-color: #5F6063;
-  border-bottom: 1px solid #eee;
+  background-color: #444444;
+  /*border-bottom: 1px solid #eee;*/
 }
 .skin-blue .navbar .nav a {
   color: #333333;

@@ -1,48 +1,12 @@
 div
-  div
-    input(type="text", ng-model="newDirName", placeholder="New Folder")
-    button(ng-click="createDir()") New Folder
-  div
-    input(type="file", uploader="uploader", nv-file-select="", options="{formData: [{parent_id: dirService.current.id, client_id: userService.current.id}]}")
-    //- table
-    //-   thead
-    //-     tr
-    //-       th #
-    //-       th Name
-    //-       th Size
-    //-       th Relative Path
-    //-       th Unique Identifier
-    //-       th #Chunks
-    //-       th Progress
-    //-       th Paused
-    //-       th Uploading
-    //-       th Completed
-    //-       th Settings
-    //-       th Message
-    //-   tbody
-    //-     tr(ng-repeat="file in $flow.files")
-    //-       td
-    //-         {{$index+1}}
-    //-       td
-    //-         {{file.name}}
-    //-       td
-    //-         {{file.size}}
-    //-       td
-    //-         {{file.relativePath}}
-    //-       td
-    //-         {{file.uniqueIdentifier}}
-    //-       td
-    //-         {{file.chunks.length}}
-    //-       td
-    //-         {{file.progress()}}
-    //-       td
-    //-         {{file.paused}}
-    //-       td
-    //-         {{file.isUploading()}}
-    //-       td
-    //-         {{file.isComplete()}}
-    //-       td
-    //-         {{file.msg()}}
+  .row
+    .col-xs-3
+      .input-group.input-group-sm
+        input(type="text", ng-model="newDirName", placeholder="New Folder",class="form-control")
+        span(class="input-group-btn")
+          button(ng-click="createDir()", class="btn btn-info btn-flat") Go
+    .col-xs-3
+      input(type="file", uploader="uploader", nv-file-select="", options="{formData: [{parent_id: dirService.current.id, client_id: userService.current.id}]}")
 
   div
     .box
@@ -58,6 +22,7 @@ div
           th Size In Pi
           th Progress
           th(style='width: 40px') StoreLevel
+          th(style='width: 40px') IdxStoreLevel
         tr(ng-show="dirService.current.parent_id")
           td
           td
@@ -66,29 +31,34 @@ div
         tr(ng-repeat="dir in dirService.current.child | orderBy:'name'")
           td {{dir.id}}.
           td(ng-if="dir.file")
-            a(href="/api/1/files/{{dir.id}}" ng-if="dir.percentage == 100")
+            a(href="/api/1/files/{{dir.id}}" ng-if="dir.storeLevel")
               | {{dir.name}}
-            div(ng-if="dir.percentage < 100")
+            div(ng-if="!dir.storeLevel")
               | {{dir.name}}
           td(ng-if="!dir.file")
             a(href="", ng-click="enter(dir.id)")
-              {{dir.name}}/
+              {{ dir.name }}/
           td
             spawn(ng-if="dir.file")
               {{dir.size}}
           td
             spawn(ng-if="dir.file")
-              {{dir.size / dir.storeLevel}}
+              {{dir.piSize}}
           td
             .progress.xs(ng-if="dir.percentage < 100")
               .progress-bar(ng-class="{'progress-bar-danger': dir.storeLevel === 4, 'progress-bar-yellow': dir.storeLevel === 3, 'progress-bar-green': dir.storeLevel === 2, 'progress-bar-light-blue': dir.storeLevel === 1 }", style='width: {{dir.percentage}}%')
           td
-            a(ng-click="upgrade(dir)")
-              span.badge(ng-class="{'bg-red': dir.storeLevel === 4, 'bg-yellow': dir.storeLevel === 3, 'bg-green': dir.storeLevel === 2, 'bg-light-blue': dir.storeLevel === 1 }") {{dir.storeLevel}}
+            span.badge(ng-class="{'bg-red': dir.storeLevel === 4, 'bg-yellow': dir.storeLevel === 3, 'bg-green': dir.storeLevel === 2, 'bg-light-blue': dir.storeLevel === 1 }") {{dir.storeLevel}}
+          td
+            span.badge(ng-class="{'bg-red': dir.idxStoreLevel === 4, 'bg-yellow': dir.idxStoreLevel === 3, 'bg-green': dir.idxStoreLevel === 2, 'bg-light-blue': dir.idxStoreLevel === 1 }") {{dir.idxStoreLevel}}
 
         tr(ng-show="!dirService.current.child.length")
           td
           td (Empty)
+
+      div
+        | TotalSize : {{dirService.totalSize}}
+        | PiSize : {{dirService.piSize}}
 
     //- a(href="", ng-click="parent(dirService.current.parent_id)", ng-show="dirService.current.parent_id")
     //-   | ..

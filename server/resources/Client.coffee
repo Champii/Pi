@@ -1,10 +1,14 @@
 async = require 'async'
+fs = require 'fs'
 
 Modulator = require '../../Modulator'
 
 Directory = require './Directory'
 
-config =
+Settings = require 'settings'
+config = new Settings(require '../../settings/config')
+
+userConfig =
   account:
     fields:
       usernameField: 'login'
@@ -33,18 +37,20 @@ class ClientRoute extends Modulator.Route.DefaultRoute
           Directory.Deserialize toSave, (err, dir) ->
             return done err if err?
 
-            dir.Save done]
+            dir.Save (err) ->
+              fs.mkdir config.hashsPath + results.user.id, (err) ->
+                done null, dir]
 
         userRootDir: ['rootDir', (done, results) ->
           results.user.root_id = results.rootDir.id
           results.user.Save done]
 
       , (err, results) ->
-        return res.locals.sendError err if err?
+        return res.status(500).send err if err?
 
         res.status(200).end()
 
-class Client extends Modulator.Resource 'client', ClientRoute, config
+class Client extends Modulator.Resource 'client', ClientRoute, userConfig
 
 Client.Init()
 

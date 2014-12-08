@@ -37,7 +37,6 @@
       fail: onAuthorizeFail
     }));
     io.sockets.on('connection', function(socket) {
-      console.log(socket.request);
       socket.join('client-' + socket.request.user.id);
       return socket.once('disconnect', function() {});
     });

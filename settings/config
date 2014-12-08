@@ -1,0 +1,39 @@
+module.exports = {
+  common:
+  {
+
+    connectors:
+    {
+      sql: "SqlMem"
+    },
+
+    hashsPath: "/data/prog/js/Pi/server/storage/hashs/",
+    piPath: "/data/prog/js/Pi/server/storage/pi",
+
+    minify: false,
+
+    // 0 = None
+    // 1 = Error
+    // 2 = Warning
+    // 3 = Log
+    log: 1
+  },
+
+  test:
+  {
+  },
+
+  development:
+  {
+  },
+
+  production:
+  {
+    hashsPath: "/data/Pi/hashs/",
+    piPath: "/data/Pi/Pi/"
+  },
+
+  preproduction:
+  {
+  }
+};

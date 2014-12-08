@@ -11,6 +11,12 @@ pi.service 'dirService', [
       $http.get '/api/1/directorys/' + id
         .success (data) =>
           @current = data
+          @totalSize = _(data.child).reduce (memo, item) ->
+            memo + item.size
+          , 0
+          @piSize = _(data.child).reduce (memo, item) ->
+            memo + item.piSize
+          , 0
           done data if done?
 
     socket.on 'updateFile', (f) =>
@@ -19,6 +25,8 @@ pi.service 'dirService', [
 
       if file?
         file = _(file).extend(f)
+
+      @refresh()
 
     @refresh = ->
       @fetch @current.id

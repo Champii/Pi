@@ -30,7 +30,7 @@ exports.init = (server, store, passport) ->
 
   io.sockets.on 'connection', (socket) ->
 
-    console.log socket.request
+    # console.log socket.request
     socket.join 'client-' + socket.request.user.id
 
     socket.once 'disconnect', () ->

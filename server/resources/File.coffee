@@ -10,38 +10,90 @@ multipart = require('connect-multiparty');
 multipartMiddleware = multipart();
 File = require './File'
 
+Settings = require 'settings'
+config = new Settings(require '../../settings/config')
+
 piFS = require '../storage'
 
-getHash = (file, path) ->
+getHash = (f, srcPath, destPath) ->
   timer = setInterval ->
-    piFS.GetPercentage file.id, (err, percentage) ->
+    piFS.GetPercentage destPath + '_tmp', (err, percentage) ->
       return console.error err if err?
 
-      if percentage isnt file.percentage
-        file.percentage = percentage
-        file.Save (err) ->
-          return if err?
+      if percentage.length < 4 and percentage isnt f.percentage
+        File.Fetch f.id, (err, f) ->
+          return console.error err if err?
 
-          bus.emit 'updateFile', file
+          f.percentage = percentage
+          f.Save (err) ->
+            return console.error err if err?
+
+            bus.emit 'updateFile', f
   , 10000
 
-  piFS.GetHash file, path, (err, hash) ->
-    if err? and err is 'Error not found'
-      file.storeLevel--
-      file.percentage = 100
-      file.Save (err) ->
-        bus.emit 'updateFile', file if not err?
-      return console.error err if err?
-
+  error = (e) ->
     clearInterval timer
+    console.error e
+    e
 
-    file.percentage = 100
-    file.hash = hash
+  callback = (err, hash) ->
+    console.log 'HASH', err, hash
+    File.Fetch f.id, (e, file) ->
+      return error e if e?
 
-    file.Save (err) ->
-      return console.error err if err?
+      if err? and err is 'Error not found'
+        if file.isIndexed or file.storeLevel < 5
+          clearInterval timer
+          file.percentage = 100
+          file.maxLevel = true
+          file.Save (err) ->
+            bus.emit 'updateFile', file if not err?
+        else
+          file.isIndexed = true
+          file.idxStoreLevel = 0
+          file.percentage = 0
+          file.Save (err) ->
+            bus.emit 'updateFile', file if not err?
+            # fs.writeFileSync srcPath, piFS.Array32ToBuffer file.hash
+            fs.writeFileSync srcPath, fs.readFileSync destPath
+            clearInterval timer
+            getHash file, srcPath, destPath
 
-      bus.emit 'updateFile', file
+        return console.error err if err?
+
+      if file.isIndexed
+        file.idxStoreLevel++
+      else
+        file.storeLevel++
+
+      file.percentage = 100
+      file.piSize = hash.length * 4
+      # console.log hash
+      fs.writeFileSync destPath, piFS.Array32ToBuffer hash
+
+      file.Save (err) ->
+        return error err if err?
+
+        bus.emit 'updateFile', file
+
+        clearInterval timer
+        getHash file, srcPath, destPath
+
+  if f.isIndexed
+    piFS.GetHash srcPath, destPath, f.idxStoreLevel + 1, callback
+  else
+    piFS.GetHash srcPath, destPath, f.storeLevel + 1, callback
+
+getFile = (file) ->
+  res = null
+  if file.isIndexed
+    res = piFS.GetFile file.GetHash(), file.idxStoreLevel
+    hash = piFS.BufferToArray32 res
+    res = piFS.GetFile hash, file.storeLevel
+  else
+    res = piFS.GetFile file.GetHash(), file.storeLevel
+
+  res
 
 class FileRoute extends Modulator.Route
   Config: ->
@@ -52,8 +104,12 @@ class FileRoute extends Modulator.Route
         name: req.files.file.name
         client_id: req.body.client_id
         percentage: 0
-        storeLevel: 1
+        storeLevel: 0
+        idxStoreLevel: 0
         size: req.files.file.size
+        piSize: req.files.file.size
+        isIndexed: false
+        maxLevel: false
       File.Deserialize toSave, (err, file) ->
         return res.status(500).send err if err?
 
@@ -61,8 +117,7 @@ class FileRoute extends Modulator.Route
           return res.status(500).send err if err?
 
           res.status(200).send file
-
-          getHash file, req.files.file.path
+          getHash file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
 
     @Add 'get', '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
@@ -72,18 +127,12 @@ class FileRoute extends Modulator.Route
 
         res.setHeader('Content-disposition', 'attachment; filename=' + file.name);
         res.setHeader('Content-type', mimetype);
-        f = piFS.GetFile JSON.parse file.hash
-        res.status(200).write(f, 'binary').end()
+        res.status(200).write(getFile(file), 'binary')
+        res.end()
 
     @Add 'put', '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
         return res.status(500).send err if err?
-
-        if req.body.storeLevel isnt file.storeLevel
-          fs.writeFileSync '/tmp/' + file.name, piFS.GetFile JSON.parse file.hash
-          file.storeLevel = req.body.storeLevel
-          file.percentage = 0
-          getHash file, '/tmp/' + file.name
 
         _(file).extend req.body
 
@@ -94,10 +143,8 @@ class FileRoute extends Modulator.Route
 
 class File extends Modulator.Resource 'file', FileRoute
 
-  ToJSON: ->
-    res = @Serialize()
-    delete res.hash
-    res
+  GetHash: ->
+    piFS.BufferToArray32 fs.readFileSync config.hashsPath + @client_id + '/' + @id
 
 
 File.Init()
