@@ -61,7 +61,7 @@ class PiFS
         old = percent
         percent = Math.floor((i / srcBuffer.length) * 100)
 
-        hash.push j
+        hash.push j + (piFile * config.piPartSize)
 
         fs.writeFileSync tmpPath, percent + '' if percent isnt old
 
