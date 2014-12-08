@@ -8,13 +8,18 @@ require('buffertools').extend()
 class PiFS
 
   constructor: ->
-    @pi = fs.readFileSync config.piPath
+    # @pi = fs.readFileSync config.piPath
     # @pi = fs.readFileSync './server/storage/pi'
 
   GetFile: (hash, storeLevel) ->
+    pi = []
     file = new Buffer(hash.length * storeLevel)
     for v, i in hash
-      @pi.copy file, i * storeLevel, v, v + storeLevel
+      filePart = Math.floor(v / config.piPartSize)
+      if not pi[filePart]?
+        pi[filePart] = fs.openSync config.piPath + filePart, 'r'
+      fs.readSync pi[filePart], file, i * storeLevel, storeLevel, v
+      # @pi.copy file, i * storeLevel, v, v + storeLevel
     file
 
   GetHash: (srcPath, destPath, storeLevel, done) ->
@@ -31,31 +36,36 @@ class PiFS
       res = fs.readFileSync destPath
       done null, @BufferToArray32 res
 
-  _GetHash: (srcPath, destPath, storeLevel) ->
+  _GetHash: (srcPath, destPath, storeLevel, piFile = 0) ->
     tmpPath = destPath + '_tmp'
-    fs.writeFileSync tmpPath, 0 + ''
 
-    srcBuffer = fs.readFileSync srcPath
+    fs.readFile config.piPath + piFile, (err, pi) =>
+      fs.writeFileSync tmpPath, 'Error not found'
+      return console.error err if err
 
-    hash = []
-    percent = 0
-    for i in [0...srcBuffer.length] by storeLevel
-      chunk = new Buffer(storeLevel)
-      srcBuffer.copy(chunk, 0, i, i + storeLevel)
+      fs.writeFileSync tmpPath, 0 + ''
 
-      j = 0
-      if (j = @pi.indexOf(chunk)) is -1
-        fs.writeFileSync tmpPath, 'Error not found'
-        return console.error 'Error not found'
+      srcBuffer = fs.readFileSync srcPath
 
-      old = percent
-      percent = Math.floor((i / srcBuffer.length) * 100)
+      hash = []
+      percent = 0
+      for i in [0...srcBuffer.length] by storeLevel
+        chunk = new Buffer(storeLevel)
+        srcBuffer.copy(chunk, 0, i, i + storeLevel)
 
-      hash.push j
+        j = 0
+        if (j = pi.indexOf(chunk)) is -1
+          @_GetHash srcPath, destPath, storeLevel, piFile + 1
+          return console.error 'Error not found'
 
-      fs.writeFileSync tmpPath, percent + '' if percent isnt old
+        old = percent
+        percent = Math.floor((i / srcBuffer.length) * 100)
 
-    fs.writeFileSync destPath, @Array32ToBuffer hash
+        hash.push j
+
+        fs.writeFileSync tmpPath, percent + '' if percent isnt old
+
+      fs.writeFileSync destPath, @Array32ToBuffer hash
 
   GetPercentage: (destPath, done) ->
     fs.readFile destPath, (err, file) ->
