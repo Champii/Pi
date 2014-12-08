@@ -37,7 +37,7 @@ class PiFS
       res = fs.readFileSync destPath
       done null, @BufferToArray32 res
 
-  _GetHash: (srcPath, destPath, storeLevel, piFile = 0) ->
+  _GetHash: (srcPath, destPath, storeLevel, piFile = 0, srcBuff = null, oldI = 0, oldHash = null) ->
     tmpPath = destPath + '_tmp'
 
     fs.readFile config.piPath + piFile, (err, pi) =>
@@ -46,17 +46,24 @@ class PiFS
 
       fs.writeFileSync tmpPath, 0 + ''
 
-      srcBuffer = fs.readFileSync srcPath
+      if not srcBuff?
+        srcBuffer = fs.readFileSync srcPath
+      else
+        srcBuffer = srcBuff
 
-      hash = []
+      if not oldHash?
+        hash = []
+      else
+        hash = oldHash
+
       percent = 0
-      for i in [0...srcBuffer.length] by storeLevel
+      for i in [(0 + oldI)...srcBuffer.length] by storeLevel
         chunk = new Buffer(storeLevel)
         srcBuffer.copy(chunk, 0, i, i + storeLevel)
 
         j = 0
         if (j = pi.indexOf(chunk)) is -1
-          @_GetHash srcPath, destPath, storeLevel, piFile + 1
+          @_GetHash srcPath, destPath, storeLevel, piFile + 1, srcBuffer, i, hash
           return console.error 'Error not found'
 
         old = percent
