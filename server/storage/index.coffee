@@ -4,12 +4,11 @@ exec = require('child_process').exec
 Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 require('buffertools').extend()
+cache = require './Cache'
 
 class PiFS
 
   constructor: ->
-    # @pi = fs.readFileSync config.piPath
-    # @pi = fs.readFileSync './server/storage/pi'
 
   GetFile: (hash, storeLevel) ->
     pi = []
@@ -18,9 +17,7 @@ class PiFS
       filePart = Math.floor(v / config.piPartSize)
       if not pi[filePart]?
         pi[filePart] = fs.openSync config.piPath + filePart, 'r'
-        console.log pi
       fs.readSync pi[filePart], file, i * storeLevel, storeLevel, v
-      # @pi.copy file, i * storeLevel, v, v + storeLevel
     file
 
   GetHash: (srcPath, destPath, storeLevel, done) ->
@@ -97,7 +94,7 @@ class PiFS
 
       fs.writeFileSync destPath, @Array32ToBuffer hash
 
-  FindInPart: () ->
+  WriteInCache: ->
 
   GetPercentage: (destPath, done) ->
     fs.readFile destPath, (err, file) ->

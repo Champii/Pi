@@ -48,9 +48,9 @@ div
             .progress.xs(ng-if="dir.percentage < 100")
               .progress-bar(ng-class="{'progress-bar-danger': dir.storeLevel === 4, 'progress-bar-yellow': dir.storeLevel === 3, 'progress-bar-green': dir.storeLevel === 2, 'progress-bar-light-blue': dir.storeLevel === 1 }", style='width: {{dir.percentage}}%')
           td
-            span.badge(ng-class="{'bg-red': dir.storeLevel === 4, 'bg-yellow': dir.storeLevel === 3, 'bg-green': dir.storeLevel === 2, 'bg-light-blue': dir.storeLevel === 1 }") {{dir.storeLevel}}
+            span.badge(ng-class="{'bg-red': dir.storeLevel === 5, 'bg-yellow': dir.storeLevel === 4, 'bg-green': dir.storeLevel === 3, 'bg-light-blue': dir.storeLevel === 2 }") {{dir.storeLevel}}
           td
-            span.badge(ng-class="{'bg-red': dir.idxStoreLevel === 4, 'bg-yellow': dir.idxStoreLevel === 3, 'bg-green': dir.idxStoreLevel === 2, 'bg-light-blue': dir.idxStoreLevel === 1 }") {{dir.idxStoreLevel}}
+            span.badge(ng-class="{'bg-red': dir.idxStoreLevel === 5, 'bg-yellow': dir.idxStoreLevel === 4, 'bg-green': dir.idxStoreLevel === 3, 'bg-light-blue': dir.idxStoreLevel === 2 }") {{dir.idxStoreLevel}}
 
         tr(ng-show="!dirService.current.child.length")
           td

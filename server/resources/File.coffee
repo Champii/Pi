@@ -107,7 +107,7 @@ class FileRoute extends Modulator.Route
         name: req.files.file.name
         client_id: req.body.client_id
         percentage: 0
-        storeLevel: 0
+        storeLevel: 1
         idxStoreLevel: 0
         size: req.files.file.size
         piSize: req.files.file.size
