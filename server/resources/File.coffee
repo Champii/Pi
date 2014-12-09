@@ -34,6 +34,10 @@ getHash = (f, srcPath, destPath) ->
   error = (e) ->
     clearInterval timer
     console.error e
+    file.percentage = 100
+    file.maxLevel = true
+    file.Save (err) ->
+      bus.emit 'updateFile', file if not err?
     e
 
   callback = (err, hash) ->
@@ -43,10 +47,7 @@ getHash = (f, srcPath, destPath) ->
 
       if err? and err is 'Error not found'
         if file.isIndexed or file.storeLevel < 5
-          file.percentage = 100
-          file.maxLevel = true
-          file.Save (err) ->
-            bus.emit 'updateFile', file if not err?
+          return error err
         else
           file.isIndexed = true
           file.idxStoreLevel = 0
