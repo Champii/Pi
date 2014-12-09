@@ -34,10 +34,11 @@ getHash = (f, srcPath, destPath) ->
   error = (e) ->
     clearInterval timer
     console.error e
-    file.percentage = 100
-    file.maxLevel = true
-    file.Save (err) ->
-      bus.emit 'updateFile', file if not err?
+    File.Fetch f.id, (error, file) ->
+      file.percentage = 100
+      file.maxLevel = true
+      file.Save (err) ->
+        bus.emit 'updateFile', file if not err?
     e
 
   callback = (err, hash) ->
