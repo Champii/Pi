@@ -50,14 +50,12 @@ class PiFS
     chunk = new Buffer(storeLevel)
     for i in [0...srcBuffer.length] by storeLevel
       srcBuffer.copy(chunk, 0, i, i + storeLevel)
-      console.log i, srcBuffer.length if not(i % 10000)
       arr.push chunk.toJSON()
 
     async.map arr, ((item, done) -> cache.GetFromCache storeLevel, item, done), (err, hash) =>
       @__GetHash srcPath, destPath, storeLevel, tmpPath, 0, srcBuffer, 0, hash, _(hash).reject((item) -> not item?).length
 
   __GetHash: (srcPath, destPath, storeLevel, tmpPath, piFile, srcBuffer, oldI, hash, cacheSize = 0) ->
-    console.log 'Cache size = ', cacheSize
     fs.open config.piPath + piFile, 'r', (err, piFd) =>
       if err?
         fs.writeFileSync tmpPath, 'Error not found'
@@ -103,7 +101,6 @@ class PiFS
         if not found
           return @__GetHash srcPath, destPath, storeLevel, tmpPath, piFile + 1, srcBuffer, i, hash, cacheSize
 
-      console.log 'Finished : ', hash
       fs.writeFileSync destPath, @Array32ToBuffer hash
       cache.Quit()
 
