@@ -21,6 +21,7 @@
     "assert": "*",
     "superagent": "*",
     "supertest": "*",
+    "redis": "*",
     "connect-redis": "*",
     "connect-multiparty": "^1.0.4"
   }

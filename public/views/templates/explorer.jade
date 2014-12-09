@@ -31,9 +31,9 @@ div
         tr(ng-repeat="dir in dirService.current.child | orderBy:'name'")
           td {{dir.id}}.
           td(ng-if="dir.file")
-            a(href="/api/1/files/{{dir.id}}" ng-if="dir.storeLevel")
+            a(href="/api/1/files/{{dir.id}}" ng-if="dir.storeLevel && dir.piSize")
               | {{dir.name}}
-            div(ng-if="!dir.storeLevel")
+            div(ng-if="!dir.storeLevel || !dir.piSize")
               | {{dir.name}}
           td(ng-if="!dir.file")
             a(href="", ng-click="enter(dir.id)")

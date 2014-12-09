@@ -1,4 +1,5 @@
 fs = require 'fs'
+async = require 'async'
 exec = require('child_process').exec
 
 Settings = require 'settings'
@@ -27,7 +28,6 @@ class PiFS
       err = fs.readFileSync destPath + '_tmp'
       fs.unlinkSync destPath + '_tmp'
 
-
       if err.toString() is 'Error not found'
         return done 'Error not found'
 
@@ -35,37 +35,41 @@ class PiFS
         return done err if err?
         done null, @BufferToArray32 res
 
-  _GetHash: (srcPath, destPath, storeLevel, piFile = 0, srcBuff = null, oldI = 0, oldHash = null) ->
+  _GetHash: (srcPath, destPath, storeLevel) ->
+    srcBuffer = fs.readFileSync srcPath
+
     tmpPath = destPath + '_tmp'
+    fs.writeFileSync tmpPath, 0 + ''
 
+    arr = []
+    for i in [0...srcBuffer.length] by storeLevel
+      chunk = new Buffer(storeLevel)
+      srcBuffer.copy(chunk, 0, i, i + storeLevel)
+      arr.push chunk
 
-    if not srcBuff?
-      srcBuffer = fs.readFileSync srcPath
-    else
-      srcBuffer = srcBuff
+    async.map arr, ((item, done) -> cache.GetFromCache storeLevel, item, done), (err, hash) =>
+      console.log 'Got from cache', hash
+      @__GetHash srcPath, destPath, storeLevel, tmpPath, 0, srcBuffer, 0, hash
 
-    fs.writeFileSync tmpPath, Math.floor((oldI / srcBuffer.length) * 100) + ''
-
-    if not oldHash?
-      hash = []
-    else
-      hash = oldHash
+  __GetHash: (srcPath, destPath, storeLevel, tmpPath, piFile, srcBuffer, oldI, hash) ->
 
     fs.open config.piPath + piFile, 'r', (err, piFd) =>
-      console.log 'Open pi', piFile, err, piFd
       if err?
+        console.log tmpPath
         fs.writeFileSync tmpPath, 'Error not found'
         return console.error err
 
-      console.log 'Pifd', piFd
       pi = new Buffer config.piFileSlice
 
       found = false
 
       percent = 0
+      chunk = new Buffer(storeLevel)
       for i in [oldI...srcBuffer.length] by storeLevel
+        if hash[i]?
+          console.log 'skipped'
+          continue
 
-        chunk = new Buffer(storeLevel)
         srcBuffer.copy(chunk, 0, i, i + storeLevel)
 
         sliceCount = 0
@@ -83,18 +87,20 @@ class PiFS
           old = percent
           percent = Math.floor((i / srcBuffer.length) * 100)
 
-          hash.push j + (piFile * config.piPartSize) + (sliceCount * config.piFileSlice)
+          j = j + (piFile * config.piPartSize) + (sliceCount * config.piFileSlice)
+          hash[Math.floor(i / storeLevel)] = j
+          cache.PutInCache storeLevel, chunk, j
           sliceCount = 0
 
           fs.writeFileSync tmpPath, percent + '' if percent isnt old
           break
 
         if not found
-          return @_GetHash srcPath, destPath, storeLevel, piFile + 1, srcBuffer, i, hash
+          return @__GetHash srcPath, destPath, storeLevel, tmpPath, piFile + 1, srcBuffer, i, hash
 
+      console.log 'Finished : ', hash
       fs.writeFileSync destPath, @Array32ToBuffer hash
-
-  WriteInCache: ->
+      cache.Quit()
 
   GetPercentage: (destPath, done) ->
     fs.readFile destPath, (err, file) ->

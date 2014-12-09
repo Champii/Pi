@@ -110,7 +110,7 @@ class FileRoute extends Modulator.Route
         storeLevel: 1
         idxStoreLevel: 0
         size: req.files.file.size
-        piSize: req.files.file.size
+        piSize: 0
         isIndexed: false
         maxLevel: false
       File.Deserialize toSave, (err, file) ->
