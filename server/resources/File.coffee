@@ -27,21 +27,21 @@ getHash = (f, srcPath, destPath) ->
           f.Save (err) ->
             return console.error err if err?
 
-            Modulator.bus.emit 'updateFile', f
   , 5000
 
   error = (e) ->
     clearInterval timer
     console.error e
     File.Fetch f.id, (error, file) ->
+      return console.error err if err?
+
       file.percentage = 100
       file.maxLevel = true
       file.Save (err) ->
-        Modulator.bus.emit 'updateFile', file if not err?
+        return console.error err if err?
     e
 
   callback = (err, hash) ->
-    console.log 'HASH', err, hash
     File.Fetch f.id, (e, file) ->
       return error e if e?
 
@@ -53,7 +53,7 @@ getHash = (f, srcPath, destPath) ->
           file.idxStoreLevel = 0
           file.percentage = 0
           file.Save (err) ->
-            Modulator.bus.emit 'updateFile', file if not err?
+            return error e if e?
             # fs.writeFileSync srcPath, piFS.Array32ToBuffer file.hash
             fs.writeFileSync srcPath, fs.readFileSync destPath
             getHash file, srcPath, destPath
@@ -78,8 +78,6 @@ getHash = (f, srcPath, destPath) ->
       file.Save (err) ->
         return error err if err?
 
-        Modulator.bus.emit 'updateFile', file
-
         clearInterval timer
         getHash file, srcPath, destPath
 
@@ -102,16 +100,13 @@ getFile = (file) ->
 class FileRoute extends Modulator.Route
   Config: ->
 
-    # @Add 'post', '', (req, res) ->
-    #   console.log 'trololo'
     @Add 'post', '', multipartMiddleware, (req, res) ->
-      console.log 'Pas glop'
       toSave =
-        parent_id: req.body.parent_id
+        parent_id: parseInt req.body.parent_id, 10
         name: req.files.file.name
-        client_id: req.body.client_id
+        client_id: parseInt req.body.client_id, 10
         percentage: 0
-        storeLevel: 1
+        storeLevel: 0
         idxStoreLevel: 0
         size: req.files.file.size
         piSize: 0

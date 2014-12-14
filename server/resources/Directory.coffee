@@ -38,7 +38,7 @@ class Directory extends Modulator.Resource 'directory', DirectoryRoute
 
         for file in files
           file.file = true
-        # console.log files, dirs
+
         done null, _(dirs).extend files
 
 Directory.Init()

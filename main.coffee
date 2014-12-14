@@ -5,9 +5,10 @@ path = require 'path'
 coffeeMiddleware = require 'coffee-middleware'
 Modulator = require './Modulator'
 
-Resources = require './server/resources'
+# Resources = require './server/resources'
 Routes = require './server/routes'
-Sockets = require './server/sockets'
+# Sockets = require './server/sockets'
+Server = require './server'
 # expressSession = require 'express-session'
 # RedisStore = require('connect-redis')(expressSession)
 
@@ -44,11 +45,11 @@ app.set 'views', path.resolve piRoot, 'public/views'
 app.engine '.jade', require('jade').__express
 app.set 'view engine', 'jade'
 
-Resources.mount()
+# Resources.Init()
 
+Server.Init()
 Routes.mount app
-Sockets.Init()
-
+# Sockets.Init()
 
   # bus.on 'updateFile', (file) ->
   #   emitClient file.client_id, 'updateFile', file

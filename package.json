@@ -1,28 +1,6 @@
 {
-  "name": "dualtd",
+  "name": "app",
   "version": "0.0.1",
   "dependencies": {
-    "settings": "*",
-    "coffee-script": "*",
-    "jade": "*",
-    "async": "*",
-    "underscore": "*",
-    "decimal.js": "*",
-    "connect-cachify": "*",
-    "buffertools": "*",
-    "cookie-parser": "*",
-    "coffee-middleware": "*",
-    "express": "*",
-    "express-session": "*",
-    "passport": "*",
-    "passport.socketio": "*",
-    "socket.io": "*",
-    "mocha": "*",
-    "assert": "*",
-    "superagent": "*",
-    "supertest": "*",
-    "redis": "*",
-    "connect-redis": "*",
-    "connect-multiparty": "^1.0.4"
   }
 }

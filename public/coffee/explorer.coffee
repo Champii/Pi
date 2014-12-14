@@ -19,7 +19,7 @@ pi.service 'dirService', [
           , 0
           done data if done?
 
-    socket.on 'updateFile', (f) =>
+    socket.on 'update_file', (f) =>
       console.log 'Update file percentage !', f
       file = _(@current.child).findWhere {id: f.id, file: true}
 

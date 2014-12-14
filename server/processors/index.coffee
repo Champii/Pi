@@ -10,4 +10,4 @@ exports.Init = ->
     filePath = path.join basePath, fileName
     fileStat = fs.statSync filePath
 
-    require(filePath) if fileStat.isFile()
+    require(filePath).Init() if fileStat.isFile()
