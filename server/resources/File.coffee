@@ -3,7 +3,6 @@ fs = require 'fs'
 mime = require 'mime'
 path = require 'path'
 
-bus = require '../bus'
 
 Modulator = require '../../Modulator'
 multipart = require('connect-multiparty');
@@ -28,7 +27,7 @@ getHash = (f, srcPath, destPath) ->
           f.Save (err) ->
             return console.error err if err?
 
-            bus.emit 'updateFile', f
+            Modulator.bus.emit 'updateFile', f
   , 5000
 
   error = (e) ->
@@ -38,7 +37,7 @@ getHash = (f, srcPath, destPath) ->
       file.percentage = 100
       file.maxLevel = true
       file.Save (err) ->
-        bus.emit 'updateFile', file if not err?
+        Modulator.bus.emit 'updateFile', file if not err?
     e
 
   callback = (err, hash) ->
@@ -54,7 +53,7 @@ getHash = (f, srcPath, destPath) ->
           file.idxStoreLevel = 0
           file.percentage = 0
           file.Save (err) ->
-            bus.emit 'updateFile', file if not err?
+            Modulator.bus.emit 'updateFile', file if not err?
             # fs.writeFileSync srcPath, piFS.Array32ToBuffer file.hash
             fs.writeFileSync srcPath, fs.readFileSync destPath
             getHash file, srcPath, destPath
@@ -79,7 +78,7 @@ getHash = (f, srcPath, destPath) ->
       file.Save (err) ->
         return error err if err?
 
-        bus.emit 'updateFile', file
+        Modulator.bus.emit 'updateFile', file
 
         clearInterval timer
         getHash file, srcPath, destPath
@@ -103,7 +102,10 @@ getFile = (file) ->
 class FileRoute extends Modulator.Route
   Config: ->
 
+    # @Add 'post', '', (req, res) ->
+    #   console.log 'trololo'
     @Add 'post', '', multipartMiddleware, (req, res) ->
+      console.log 'Pas glop'
       toSave =
         parent_id: req.body.parent_id
         name: req.files.file.name

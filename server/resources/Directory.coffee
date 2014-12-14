@@ -30,22 +30,16 @@ class DirectoryRoute extends Modulator.Route.DefaultRoute
 class Directory extends Modulator.Resource 'directory', DirectoryRoute
 
   @ListChild: (id, done) =>
-    @table.Select 'id', {parent_id: id}, {}, (err, ids) =>
+    @ListBy 'parent_id', id, (err, dirs) =>
       return done err if err?
 
-      async.map _(ids).pluck('id'), (item, done) =>
-        Directory.Fetch item, done
-      , (err, dirs) ->
+      File.ListBy 'parent_id', id, (err, files) ->
         return done err if err?
 
-        File.ListBy 'parent_id', id, (err, files) ->
-          return done err if err?
-
-          for file in files
-            file.file = true
-          # console.log files, dirs
-          done null, _(dirs).extend files
-
+        for file in files
+          file.file = true
+        # console.log files, dirs
+        done null, _(dirs).extend files
 
 Directory.Init()
 

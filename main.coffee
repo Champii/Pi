@@ -5,13 +5,11 @@ path = require 'path'
 coffeeMiddleware = require 'coffee-middleware'
 Modulator = require './Modulator'
 
-bus = require './server/bus'
 Resources = require './server/resources'
 Routes = require './server/routes'
-Sockets = require './server/socket/socket'
-Processors = require './server/processors'
-expressSession = require 'express-session'
-RedisStore = require('connect-redis')(expressSession)
+Sockets = require './server/sockets'
+# expressSession = require 'express-session'
+# RedisStore = require('connect-redis')(expressSession)
 
 
 app = Modulator.app
@@ -42,17 +40,6 @@ app.use require('connect-cachify').setup MakeAssetsList(),
 
 app.use Modulator.express.static path.resolve piRoot, 'public'
 
-sessionStore = new RedisStore
-  host: 'localhost'
-
-app.use expressSession
-  key: 'pi'
-  secret: 'pi'
-  store: sessionStore
-  resave: true
-  saveUninitialized: true
-
-
 app.set 'views', path.resolve piRoot, 'public/views'
 app.engine '.jade', require('jade').__express
 app.set 'view engine', 'jade'
@@ -60,33 +47,11 @@ app.set 'view engine', 'jade'
 Resources.mount()
 
 Routes.mount app
-
-Sockets.init Modulator.server, sessionStore, Modulator.passport
-
-Processors.init()
+Sockets.Init()
 
 
-# #TESTS
-# fs = require 'fs'
-# PiFS = require './server/storage'
+  # bus.on 'updateFile', (file) ->
+  #   emitClient file.client_id, 'updateFile', file
 
-# piFS = new PiFS
-
-# console.time 'hash'
-# hash = piFS.GetHash 'test.txt'
-# console.timeEnd 'hash'
-
-# if hash?
-#   console.log 'Got Hash !', hash.idx.length
-
-#   console.time 'file'
-#   file = piFS.GetFile hash
-#   console.timeEnd 'file'
-#   if file?
-#     console.log 'Got File !', file.length
-#     fs.writeFile './test2.txt', file
-#   else
-#     console.error 'Cannot get file from hash'
-# else
-#   console.error 'Cant get Hash'
-# # console.log 'file', file
+  # emitClient = (clientId, args...) ->
+  #   io.sockets.in('client-' + clientId).emit.apply io.sockets.in('client-' + clientId), args

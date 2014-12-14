@@ -1,4 +1,4 @@
-bus = require '../bus'
+
 
 exports.mount = (app) ->
 
