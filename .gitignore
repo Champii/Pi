@@ -28,4 +28,5 @@ node_modules
 .lock-wscript
 build
 server/storage/pi
-server/storage/pi2
+server/storage/hashs
+Modulator

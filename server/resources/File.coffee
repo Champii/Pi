@@ -2,89 +2,16 @@ _ = require 'underscore'
 fs = require 'fs'
 mime = require 'mime'
 path = require 'path'
+multipartMiddleware = require('connect-multiparty')()
 
+Modulator = require 'Modulator'
 
-Modulator = require '../../Modulator'
-multipart = require('connect-multiparty');
-multipartMiddleware = multipart();
 File = require './File'
 
 Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 
 piFS = require '../storage'
-
-getHash = (f, srcPath, destPath) ->
-  timer = setInterval ->
-    piFS.GetPercentage destPath + '_tmp', (err, percentage) ->
-      return console.error err if err?
-
-      if percentage.length < 4 and percentage isnt f.percentage
-        File.Fetch f.id, (err, f) ->
-          return console.error err if err?
-
-          f.percentage = percentage
-          f.Save (err) ->
-            return console.error err if err?
-
-  , 5000
-
-  error = (e) ->
-    clearInterval timer
-    console.error e
-    File.Fetch f.id, (error, file) ->
-      return console.error err if err?
-
-      file.percentage = 100
-      file.maxLevel = true
-      file.Save (err) ->
-        return console.error err if err?
-    e
-
-  callback = (err, hash) ->
-    File.Fetch f.id, (e, file) ->
-      return error e if e?
-
-      if err? and err is 'Error not found'
-        if file.isIndexed or file.storeLevel < 5
-          return error err
-        else
-          file.isIndexed = true
-          file.idxStoreLevel = 0
-          file.percentage = 0
-          file.Save (err) ->
-            return error e if e?
-            # fs.writeFileSync srcPath, piFS.Array32ToBuffer file.hash
-            fs.writeFileSync srcPath, fs.readFileSync destPath
-            getHash file, srcPath, destPath
-
-        clearInterval timer
-        return console.error err if err?
-      else if err?
-        clearInterval timer
-        return console.error err if err?
-
-
-      if file.isIndexed
-        file.idxStoreLevel++
-      else
-        file.storeLevel++
-
-      file.percentage = 100
-      file.piSize = hash.length * 4
-      # console.log hash
-      fs.writeFileSync destPath, piFS.Array32ToBuffer hash
-
-      file.Save (err) ->
-        return error err if err?
-
-        clearInterval timer
-        getHash file, srcPath, destPath
-
-  if f.isIndexed
-    piFS.GetHash srcPath, destPath, f.idxStoreLevel + 1, callback
-  else
-    piFS.GetHash srcPath, destPath, f.storeLevel + 1, callback
 
 getFile = (file) ->
   res = null
@@ -119,7 +46,7 @@ class FileRoute extends Modulator.Route
           return res.status(500).send err if err?
 
           res.status(200).send file
-          getHash file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
+          Modulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
 
     @Add 'get', '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
@@ -150,7 +77,6 @@ class File extends Modulator.Resource 'file', FileRoute
       piFS.BufferToArray32 fs.readFileSync config.hashsPath + @client_id + '/' + @id
     else
       false
-
 
 File.Init()
 

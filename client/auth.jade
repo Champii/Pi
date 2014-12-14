@@ -14,22 +14,16 @@ html.bg-black
       script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
       script(src='https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js')
 
-    | !{cachify_css('/css/pi.min.css')}
-    script.
-      var __user = !{JSON.stringify(user)};
+    | !{cachify_css('/css/app.css')}
+    | !{cachify_js('/js/app_head.js')}
 
-  body.bg-black(ng-app="pi")
-
-    | !{cachify_js('/js/pi.min.js')}
+  body.bg-black(ng-app="app")
 
     h1
       center Pi
 
-    pi-auth
+    auth
 
     script(src='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js', type='text/javascript')
-
-    script#auth-tpl(type="text/ng-template")
-      include templates/auth
-
-    script(src="/socket.io/socket.io.js")
+    | !{cachify_js('/js/app_body.js')}
+    | !{modulator()}
