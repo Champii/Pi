@@ -14,7 +14,7 @@ class Cache
   GetFromCache: (size, name, done) ->
     @client.hget size, name, (err, reply) ->
 
-      console.log 'Get from cache', name, reply
+      # console.log 'Get from cache', name, reply
       done null, reply
 
   PutInCache: (size, name, index) ->
