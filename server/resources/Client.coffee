@@ -1,7 +1,7 @@
 async = require 'async'
 fs = require 'fs'
 
-Modulator = require '../../Modulator'
+Modulator = require 'Modulator'
 
 Directory = require './Directory'
 

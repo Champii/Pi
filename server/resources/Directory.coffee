@@ -1,7 +1,7 @@
 _ = require 'underscore'
 async = require 'async'
 
-Modulator = require '../../Modulator'
+Modulator = require 'Modulator'
 
 File = require './File'
 
