@@ -1,4 +1,5 @@
 fs = require 'fs'
+zlib = require 'zlib'
 Modulator = require 'Modulator'
 
 piFS = require '../storage'
