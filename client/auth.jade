@@ -16,11 +16,14 @@ html.bg-black
 
     | !{cachify_css('/css/app.css')}
     | !{cachify_js('/js/app_head.js')}
+    script.
+      var __user = !{JSON.stringify(user)};
 
   body.bg-black(ng-app="app")
 
     h1
-      center Pi
+      center
+        | Pi
 
     auth
 

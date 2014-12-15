@@ -1,4 +1,4 @@
-class UserService extends Modulator.Service 'userService', '$http', '$window', 'socket'
+class UserService extends Modulator.Service 'user', '$http', '$window', 'socket'
 
   current: null
 

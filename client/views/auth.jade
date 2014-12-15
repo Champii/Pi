@@ -12,10 +12,10 @@ div
             input(type='checkbox', name='remember_me')
             |  Remember me
         .footer
-          button.btn.bg-olive.btn-block(type='submit', ng-click="auth()") Sign me in
+          button.btn.bg-olive.btn-block(type='submit', ng-click="Auth()") Sign me in
           p
             a(href='#') I forgot my password
-          a.text-center(href="", ng-click="toggle()") Register a new membership
+          a.text-center(href="", ng-click="Toggle()") Register a new membership
       .margin.text-center
         span Sign in using social networks
         br
@@ -38,8 +38,8 @@ div
           .form-group
             input.form-control(type='password', ng-model='ident.pass2', placeholder='Retype password')
         .footer
-          button.btn.bg-olive.btn-block(ng-click="signup()") Sign me up
-          a.text-center(href="", ng-click="toggle()") I already have a membership
+          button.btn.bg-olive.btn-block(ng-click="Signup()") Sign me up
+          a.text-center(href="", ng-click="Toggle()") I already have a membership
       .margin.text-center
         span Register using social networks
         br
@@ -50,4 +50,4 @@ div
         button.btn.bg-red.btn-circle
           i.fa.fa-google-plus
   div(ng-show="error.length")
-    {{error}}
+    | {{error}}

@@ -1,38 +1,36 @@
-app.service 'dirService', [
-  '$http'
-  '$window'
-  'socket'
-  'userService'
-  ($http, $window, socket, userService) ->
+class DirectoryService extends Modulator.ResourceService 'directory', 'userService'
 
-    @current = null
+  current: null
 
-    @fetch = (id, done) ->
-      $http.get '/api/1/directorys/' + id
-        .success (data) =>
-          @current = data
-          @totalSize = _(data.child).reduce (memo, item) ->
-            memo + item.size
-          , 0
-          @piSize = _(data.child).reduce (memo, item) ->
-            memo + item.piSize
-          , 0
-          done data if done?
+  Init: ->
+    if @userService.current
+      @Fetch @userService.current.root_id
+    @_lName = 'file'
+    super()
 
-    socket.on 'update_file', (f) =>
-      console.log 'Update file percentage !', f
-      file = _(@current.child).findWhere {id: f.id, file: true}
+  Fetch: (id, done) ->
+    super id, (err, data) =>
+      return done err if err? and done?
+      return console.error err if err?
 
-      if file?
-        file = _(file).extend(f)
+      @current = data
+      @totalSize = _(data.child).reduce (memo, item) ->
+        memo + item.size
+      , 0
+      @piSize = _(data.child).reduce (memo, item) ->
+        memo + item.piSize
+      , 0
+      done data if done?
 
-      @refresh()
+  OnUpdate: (f) ->
+    file = _(@current.child).findWhere {id: f.id, file: true}
 
-    @refresh = ->
-      @fetch @current.id
+    if file?
+      file = _(file).extend(f)
 
-    if userService.current
-      @fetch userService.current.root_id
+    @Refresh()
 
-    @
-]
+  Refresh: ->
+    @Fetch @current.id
+
+DirectoryService.Init()

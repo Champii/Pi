@@ -1,6 +1,6 @@
 doctype html
 html
-head
+  head
     meta(charset='UTF-8')
     title Pi | Dashboard
     meta(content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no', name='viewport')
@@ -15,6 +15,8 @@ head
         script(src='https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js')
     | !{cachify_css('/css/app.css')}
     | !{cachify_js('/js/app_head.js')}
+    script.
+      var __user = !{JSON.stringify(user)};
 
   body.skin-blue(ng-app="app")
     // header logo: style can be found in header.less
@@ -245,7 +247,7 @@ head
         // Main content
         section.content
 
-          pi-app
+          app
 
         // /.content
       // /.right-side
