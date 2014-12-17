@@ -1,6 +1,6 @@
-Modulator = require 'Modulator'
+Nodulator = require 'nodulator'
 
-class Socket extends Modulator.Socket()
+class Socket extends Nodulator.Socket()
 
   OnConnect: (socket) ->
 

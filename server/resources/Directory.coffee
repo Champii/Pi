@@ -1,11 +1,11 @@
 _ = require 'underscore'
 async = require 'async'
 
-Modulator = require '../../Modulator'
+Nodulator = require 'nodulator'
 
 File = require './File'
 
-class DirectoryRoute extends Modulator.Route.DefaultRoute
+class DirectoryRoute extends Nodulator.Route.DefaultRoute
   Config: ->
     super()
 
@@ -27,7 +27,7 @@ class DirectoryRoute extends Modulator.Route.DefaultRoute
           res.status(200).send result.ToJSON()
 
 
-class Directory extends Modulator.Resource 'directory', DirectoryRoute
+class Directory extends Nodulator.Resource 'directory', DirectoryRoute
 
   @ListChild: (id, done) =>
     @ListBy 'parent_id', id, (err, dirs) =>
