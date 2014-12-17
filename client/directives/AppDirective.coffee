@@ -1,3 +1,3 @@
-class AppDirective extends Modulator.Directive 'app'
+class AppDirective extends Nodulator.Directive 'app'
 
 AppDirective.Init()

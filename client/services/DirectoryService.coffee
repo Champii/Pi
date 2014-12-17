@@ -1,4 +1,4 @@
-class DirectoryService extends Modulator.ResourceService 'directory', 'userService'
+class DirectoryService extends Nodulator.ResourceService 'directory', 'userService'
 
   current: null
 

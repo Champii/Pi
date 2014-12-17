@@ -1,8 +1,10 @@
-Modulator = require './Modulator'
+Nodulator = require 'nodulator'
+Assets = require 'nodulator-assets'
+Angular = require 'nodulator-angular'
 Server = require './server'
 
-Modulator.Config
-  bootstrap: true
+Nodulator.Use Assets
+Nodulator.Use Angular
 
 Server.Init()
-Modulator.Run()
+Nodulator.Run()

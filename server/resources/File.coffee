@@ -5,7 +5,7 @@ path = require 'path'
 zlib = require 'zlib'
 multipartMiddleware = require('connect-multiparty')()
 
-Modulator = require 'Modulator'
+Nodulator = require 'nodulator'
 
 File = require './File'
 
@@ -25,7 +25,7 @@ getFile = (file) ->
 
   res
 
-class FileRoute extends Modulator.Route
+class FileRoute extends Nodulator.Route
   Config: ->
 
     @Add 'post', '', multipartMiddleware, (req, res) ->
@@ -52,7 +52,7 @@ class FileRoute extends Modulator.Route
             res.status(200).send file
 
             fs.writeFileSync req.files.file.path, compressed
-            Modulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
+            Nodulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
 
     @Add 'get', '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
@@ -79,7 +79,7 @@ class FileRoute extends Modulator.Route
 
           res.status(200).send file.ToJSON()
 
-class File extends Modulator.Resource 'file', FileRoute
+class File extends Nodulator.Resource 'file', FileRoute
 
   GetHash: ->
     if @storeLevel

@@ -1,12 +1,12 @@
 fs = require 'fs'
 zlib = require 'zlib'
-Modulator = require 'Modulator'
+Nodulator = require 'nodulator'
 
 piFS = require '../storage'
 File = require '../resources/File'
 
 module.exports.Init = ->
-  Modulator.bus.on 'calc_hash', (f, srcPath, destPath) ->
+  Nodulator.bus.on 'calc_hash', (f, srcPath, destPath) ->
     getHash f, srcPath, destPath
 
   getHash = (f, srcPath, destPath) ->

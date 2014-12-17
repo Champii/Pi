@@ -2,5 +2,8 @@
   "name": "app",
   "version": "0.0.1",
   "dependencies": {
+    "nodulator": "0.0.5",
+    "nodulator-assets": "0.0.3",
+    "nodulator-angular": "0.0.4"
   }
 }

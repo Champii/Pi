@@ -1,7 +1,7 @@
 async = require 'async'
 fs = require 'fs'
 
-Modulator = require 'Modulator'
+Nodulator = require 'nodulator'
 
 Directory = require './Directory'
 
@@ -14,7 +14,7 @@ userConfig =
       usernameField: 'login'
       passwordField: 'pass'
 
-class ClientRoute extends Modulator.Route.DefaultRoute
+class ClientRoute extends Nodulator.Route.DefaultRoute
   Config: ->
     super()
 
@@ -50,7 +50,7 @@ class ClientRoute extends Modulator.Route.DefaultRoute
 
         res.status(200).end()
 
-class Client extends Modulator.Resource 'client', ClientRoute, userConfig
+class Client extends Nodulator.Resource 'client', ClientRoute, userConfig
 
 Client.Init()
 

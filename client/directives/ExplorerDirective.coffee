@@ -1,4 +1,4 @@
-class ExplorerDirective extends Modulator.Directive 'explorer', '$http', 'directoryService', 'userService', 'FileUploader'
+class ExplorerDirective extends Nodulator.Directive 'explorer', '$http', 'directoryService', 'userService', 'FileUploader'
 
   Pre: ->
     @uploader = new @FileUploader

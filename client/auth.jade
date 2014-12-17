@@ -22,11 +22,10 @@ html.bg-black
   body.bg-black(ng-app="app")
 
     h1
-      center
-        | Pi
+      center Pi
 
     auth
 
     script(src='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js', type='text/javascript')
     | !{cachify_js('/js/app_body.js')}
-    | !{modulator()}
+    | !{nodulator()}
