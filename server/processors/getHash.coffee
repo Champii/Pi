@@ -10,6 +10,9 @@ module.exports.Init = ->
     getHash f, srcPath, destPath
 
   getHash = (f, srcPath, destPath) ->
+    if f.maxLevel
+      return
+
     timer = setInterval ->
       piFS.GetPercentage destPath + '_tmp', (err, percentage) ->
         return console.error err if err?
@@ -41,34 +44,32 @@ module.exports.Init = ->
         return error e if e?
 
         if (err? and err is 'Error not found') or file.storeLevel is 3
+          # console.log 'err, file', err, file
           if file.piSize is 0
             return error err
 
-          if file.storeLevel is 3
-            file.piSize = hash.length * 4
-          # if file.isIndexed and file.size <
-          #   return error err
-          # else
-          # file.isIndexed = true
-          file.idxStoreLevel++
-          file.storeLevel = 2
-          file.percentage = 0
-          file.Save (err) ->
-            return error e if e?
+          # console.log 'Before compress', file.idxStoreLevel, ', raw size', hash.length * 4
+          zlib.gzip fs.readFileSync(destPath), (err, compressed) ->
+            # console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length, err
+            return error e if err?
+            if hash.length * 4 <= compressed.length
+              file.maxLevel = true
+              file.piSize = hash.length * 4
+              file.percentage = 100
+              # console.log 'MAX LEVEL', file
+              return file.Save ->
+            else
+              file.storeLevel = 2
+              file.percentage = 0
+              file.idxStoreLevel++
+              file.Save (err) ->
+                return error e if e?
 
-            console.log 'Before compress', file.idxStoreLevel, ', raw size', file.piSize
-            zlib.gzip fs.readFileSync(destPath), (err, compressed) ->
-              console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length, err
-              return error e if err?
-              if file.piSize <= compressed
-                file.maxLevel = true
-                return file.Save()
-
-              fs.writeFileSync srcPath, compressed
-              getHash file, srcPath, destPath
+            fs.writeFileSync srcPath, compressed
+            getHash file, srcPath, destPath
 
           clearInterval timer
-          return console.error err if err?
+          return
         else if err?
           clearInterval timer
           return console.error err if err?
@@ -88,6 +89,7 @@ module.exports.Init = ->
           return error err if err?
 
           clearInterval timer
+          # console.log 'On y retourne'
           getHash file, srcPath, destPath
 
     # if f.isIndexed
