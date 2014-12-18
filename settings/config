@@ -37,7 +37,7 @@ module.exports = {
     hashsPath: "/data/Pi/hashs/",
     piPartSize: 12500000000,
     piFileSlice: 12500000,
-    piPath: "/data/Pi/pi/",
+    piPath: "/data_unsafe/pi/",
     cacheFile: "/data/Pi/pi/cache"
   },
 
