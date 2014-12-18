@@ -4,18 +4,20 @@ Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 
 redis = require 'redis'
+i = 0
 class Cache
 
   constructor: ->
-    @client = redis.createClient 6379, '1.1.1.7'
+    @client = redis.createClient config.redis.port, config.redis.host
 
     @client.on "error", (err) ->
         console.log "Error " + err
 
   GetFromCache: (size, name, done) ->
+    console.log 'Ask from cache', size, name, (i += size)
     @client.hget size, name, (err, reply) ->
 
-      # console.log 'Got from cache', name, reply
+      console.log 'Got from cache', size, name, i, reply
       done null, reply
 
   PutInCache: (size, name, index) ->

@@ -29,16 +29,19 @@ class PiFS
     exec 'coffee ./server/storage/async_run.coffee ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
       return done err if err?
 
-      err = fs.readFileSync destPath + '_tmp'
-      fs.unlinkSync destPath + '_tmp'
+      fs.open destPath + '_tmp', 'r', (err, fd) ->
+        if not err?
+          errMess = fs.readFileSync destPath + '_tmp'
+          fs.closeSync fd
+          fs.unlinkSync destPath + '_tmp'
 
-      if err.toString() is 'Error not found'
-        return done 'Error not found'
+          if errMess.toString() is 'Error not found'
+            return done 'Error not found'
 
-      fs.readFile destPath, (err, res) =>
-        return done err if err?
+        fs.readFile destPath, (err, res) =>
+          return done err if err?
 
-        done null, @BufferToArray32 res
+          done null, @BufferToArray32 res
 
   _GetHash: (srcPath, destPath, storeLevel) ->
     srcBuffer = fs.readFileSync srcPath
@@ -55,7 +58,8 @@ class PiFS
       # old = percent
       # cachePercent = Math.floor((i / srcBuffer.length) * 100)
 
-    async.map arr, ((item, done) -> cache.GetFromCache storeLevel, item, done), (err, hash) =>
+    async.map arr, ((item, done) -> parseInt(cache.GetFromCache(storeLevel, item, done), 10)), (err, hash) =>
+      console.log 'Prepached hash = ', hash, err
       @__GetHash srcPath, destPath, storeLevel, tmpPath, 0, srcBuffer, 0, hash, _(hash).reject((item) -> not item?).length
 
   __GetHash: (srcPath, destPath, storeLevel, tmpPath, piFile, srcBuffer, oldI, hash, cacheSize = 0) ->
@@ -96,7 +100,7 @@ class PiFS
           hash[Math.floor(i / storeLevel)] = j
 
           # console.log 'lol', i, chunk, j, storeLevel
-          cache.PutInCache storeLevel, chunk.toJSON(), j
+          cache.PutInCache storeLevel, chunk.toJSON(), j.toString()
 
           sliceCount = 0
 
@@ -108,6 +112,7 @@ class PiFS
 
       fs.writeFileSync destPath, @Array32ToBuffer hash
       cache.Quit()
+      return
 
   GetPercentage: (destPath, done) ->
     fs.readFile destPath, (err, file) ->

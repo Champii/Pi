@@ -20,6 +20,7 @@ div
           th Name
           th Size
           th Size In Pi
+          //- th %
           th Progress
           th(style='width: 40px') StoreLevel
           th(style='width: 40px') IdxStoreLevel
@@ -44,7 +45,10 @@ div
           td
             spawn(ng-if="dir.file")
               | {{dir.piSize}}
+          //- td
+          //-   spawn(ng-if="dir.percentage < 100")
           td
+            | {{dir.percentage}}%
             .progress.xs(ng-if="dir.percentage < 100")
               .progress-bar(ng-class="{'progress-bar-danger': dir.storeLevel === 4, 'progress-bar-yellow': dir.storeLevel === 3, 'progress-bar-green': dir.storeLevel === 2, 'progress-bar-light-blue': dir.storeLevel === 1 }", style='width: {{dir.percentage}}%')
           td

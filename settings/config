@@ -10,10 +10,13 @@ module.exports = {
     hashsPath: "/data/prog/js/Pi/server/storage/hashs/",
     piPath: "/data/prog/js/Pi/server/storage/pi/",
 
-    cacheFile: "/data/prog/js/Pi/Server/storage/pi/cache",
-
     piPartSize: 250000000,
     piFileSlice: 250000,
+
+    redis: {
+      host: "1.1.1.7",
+      port: 6379
+    },
 
     minify: false,
 
@@ -34,6 +37,11 @@ module.exports = {
 
   production:
   {
+    redis: {
+      host: "1.1.1.7",
+      port: 6379
+    },
+
     hashsPath: "/data/Pi/hashs/",
     piPartSize: 12500000000,
     piFileSlice: 12500000,
