@@ -41,7 +41,8 @@ module.exports.Init = ->
         return error e if e?
 
         if err? and err is 'Error not found'
-          #if file.isIndexed or file.storeLevel < 5
+          if file.piSize is 0
+            return error err
           # if file.isIndexed and file.size <
           #   return error err
           # else
