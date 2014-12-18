@@ -100,7 +100,8 @@ class PiFS
           hash[Math.floor(i / storeLevel)] = j
 
           # console.log 'lol', i, chunk, j, storeLevel
-          cache.PutInCache storeLevel, chunk.toJSON(), j.toString()
+          exec 'coffee ./server/storage/async_cache.coffee ' + storeLevel + ' ' + chunk.toJSON() + ' ' + j.toString()
+          # cache.PutInCache storeLevel, chunk.toJSON(), j.toString()
 
           sliceCount = 0
 

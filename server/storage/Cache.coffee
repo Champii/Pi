@@ -25,7 +25,6 @@ class Cache
       console.log 'Put in cache', size, name, index, reply, err
       return console.error err if err?
 
-
   Quit: ->
     @client.quit()
 
