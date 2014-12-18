@@ -59,6 +59,8 @@ div
       div
         | TotalSize : {{directoryService.totalSize}}
         | PiSize : {{directoryService.piSize}}
+        p(ng-show="directoryService.piSize")
+          | Ratio : {{directoryService.ratio}}%
 
     //- a(href="", ng-click="parent(directoryService.current.parent_id)", ng-show="directoryService.current.parent_id")
     //-   | ..

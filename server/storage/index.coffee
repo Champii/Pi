@@ -47,10 +47,13 @@ class PiFS
     fs.writeFileSync tmpPath, 0 + ''
 
     arr = []
+    # cachePercent = 0
     chunk = new Buffer(storeLevel)
     for i in [0...srcBuffer.length] by storeLevel
       srcBuffer.copy(chunk, 0, i, i + storeLevel)
       arr.push chunk.toJSON()
+      # old = percent
+      # cachePercent = Math.floor((i / srcBuffer.length) * 100)
 
     async.map arr, ((item, done) -> cache.GetFromCache storeLevel, item, done), (err, hash) =>
       @__GetHash srcPath, destPath, storeLevel, tmpPath, 0, srcBuffer, 0, hash, _(hash).reject((item) -> not item?).length
@@ -72,6 +75,7 @@ class PiFS
         if hash[i]?
           continue
 
+
         srcBuffer.copy(chunk, 0, i, i + storeLevel)
 
         sliceCount = 0
@@ -91,7 +95,8 @@ class PiFS
           j = j + (piFile * config.piPartSize) + (sliceCount * config.piFileSlice)
           hash[Math.floor(i / storeLevel)] = j
 
-          cache.PutInCache storeLevel, chunk, j
+          # console.log 'lol', i, chunk, j, storeLevel
+          cache.PutInCache storeLevel, chunk.toJSON(), j
 
           sliceCount = 0
 
