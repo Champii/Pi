@@ -2,6 +2,7 @@ fs = require 'fs'
 async = require 'async'
 exec = require('child_process').exec
 _ = require 'underscore'
+path = require 'path'
 Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 require('buffertools').extend()
@@ -26,7 +27,8 @@ class PiFS
     file
 
   GetHash: (srcPath, destPath, storeLevel, done) ->
-    exec 'coffee ./server/storage/async_run.coffee ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
+    p = path.resolve __dirname, 'async_run.coffee'
+    exec p + ' ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
       return done err if err?
 
       fs.open destPath + '_tmp', 'r', (err, fd) =>

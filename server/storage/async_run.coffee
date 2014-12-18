@@ -1,3 +1,4 @@
+# path = require 'path'
 piFS = require './'
 fs = require 'fs'
 
