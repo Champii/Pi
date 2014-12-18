@@ -59,7 +59,7 @@ class PiFS
       # cachePercent = Math.floor((i / srcBuffer.length) * 100)
 
     async.map arr, ((item, done) -> parseInt(cache.GetFromCache(storeLevel, item, done), 10)), (err, hash) =>
-      console.log 'Prepached hash = ', hash, err
+      console.log 'Prepached hash = ', _(hash).filter((item) -> item?).length, 'for', hash.length, '(' + ((_(hash).filter((item) -> item?).length / hash.length) * 100).toFixed(1) + '%)'
       @__GetHash srcPath, destPath, storeLevel, tmpPath, 0, srcBuffer, 0, hash, _(hash).reject((item) -> not item?).length
 
   __GetHash: (srcPath, destPath, storeLevel, tmpPath, piFile, srcBuffer, oldI, hash, cacheSize = 0) ->
