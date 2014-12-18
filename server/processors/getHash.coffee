@@ -43,6 +43,9 @@ module.exports.Init = ->
         if (err? and err is 'Error not found') or file.storeLevel is 3
           if file.piSize is 0
             return error err
+
+          if file.storeLevel is 3
+            file.piSize = hash.length * 4
           # if file.isIndexed and file.size <
           #   return error err
           # else
@@ -57,6 +60,9 @@ module.exports.Init = ->
             zlib.gzip fs.readFileSync(destPath), (err, compressed) ->
               console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length, err
               return error e if err?
+              if file.piSize >= compressed
+                file.maxLevel = true
+                return file.Save()
 
               fs.writeFileSync srcPath, compressed
               getHash file, srcPath, destPath
