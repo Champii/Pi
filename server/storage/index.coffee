@@ -29,7 +29,7 @@ class PiFS
     exec 'coffee ./server/storage/async_run.coffee ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
       return done err if err?
 
-      fs.open destPath + '_tmp', 'r', (err, fd) ->
+      fs.open destPath + '_tmp', 'r', (err, fd) =>
         if not err?
           errMess = fs.readFileSync destPath + '_tmp'
           fs.closeSync fd
