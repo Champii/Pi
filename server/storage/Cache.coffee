@@ -14,15 +14,15 @@ class Cache
         console.log "Error " + err
 
   GetFromCache: (size, name, done) ->
-    console.log 'Ask from cache', size, name, (i += size)
+    # console.log 'Ask from cache', size, name, (i += size)
     @client.hget size, name, (err, reply) ->
 
-      console.log 'Got from cache', size, name, i, reply
+      # console.log 'Got from cache', size, name, i, reply
       done null, reply
 
   PutInCache: (size, name, index) ->
     @client.hset size, name, index, (err, reply) ->
-      console.log 'Put in cache', size, name, index, reply, err
+      # console.log 'Put in cache', size, name, index, reply, err
       return console.error err if err?
 
   Quit: ->
