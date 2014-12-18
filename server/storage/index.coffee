@@ -76,7 +76,7 @@ class PiFS
       percent = 0
       chunk = new Buffer(storeLevel)
       for i in [oldI...srcBuffer.length] by storeLevel
-        if hash[i]?
+        if hash[i / storeLevel]?
           continue
 
 
@@ -99,8 +99,9 @@ class PiFS
           j = j + (piFile * config.piPartSize) + (sliceCount * config.piFileSlice)
           hash[Math.floor(i / storeLevel)] = j
 
-          # console.log 'lol', i, chunk, j, storeLevel
-          exec 'coffee ./server/storage/async_cache.coffee ' + storeLevel + ' ' + chunk.toJSON() + ' ' + j.toString()
+          console.log 'lol', i, chunk, j, storeLevel
+          require('./async_cache')(storeLevel, chunk.toJSON(), j.toString())
+          # exec 'coffee ./server/storage/async_cache.coffee ' + storeLevel + ' ' + chunk.toJSON() + ' ' + j.toString()
           # cache.PutInCache storeLevel, chunk.toJSON(), j.toString()
 
           sliceCount = 0
