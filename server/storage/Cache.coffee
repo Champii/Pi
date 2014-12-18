@@ -24,7 +24,7 @@ class Cache
     @client.hset size, name, index, (err, reply) ->
       return console.error err if err?
 
-      # console.log 'Put in cache', size, name, index, reply, err
+      console.log 'Put in cache', size, name, index, reply, err
 
   Quit: ->
     @client.quit()
