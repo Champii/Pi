@@ -47,7 +47,7 @@ module.exports.Init = ->
           # else
           # file.isIndexed = true
           file.idxStoreLevel++
-          file.storeLevel = 3
+          file.storeLevel = 2
           file.percentage = 0
           file.Save (err) ->
             return error e if e?
