@@ -47,14 +47,14 @@ module.exports.Init = ->
           # else
           # file.isIndexed = true
           file.idxStoreLevel++
-          file.storeLevel = 2
+          file.storeLevel = 1
           file.percentage = 0
           file.Save (err) ->
             return error e if e?
 
             console.log 'Before compress', file.idxStoreLevel, ', raw size', file.piSize
             zlib.gzip fs.readFileSync(destPath), (err, compressed) ->
-              console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length
+              console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length, err
               return error e if err?
 
               fs.writeFileSync srcPath, compressed
