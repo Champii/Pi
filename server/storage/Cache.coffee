@@ -7,7 +7,8 @@ redis = require 'redis'
 class Cache
 
   constructor: ->
-    @client = redis.createClient()
+    @client = redis.createClient 6379, '1.1.1.7'
+
     @client.on "error", (err) ->
         console.log "Error " + err
 

@@ -40,7 +40,7 @@ module.exports.Init = ->
       File.Fetch f.id, (e, file) ->
         return error e if e?
 
-        if (err? and err is 'Error not found') or file.storeLevel is 4
+        if (err? and err is 'Error not found') or file.storeLevel is 3
           if file.piSize is 0
             return error err
           # if file.isIndexed and file.size <
