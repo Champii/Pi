@@ -34,7 +34,7 @@ class FileRoute extends Nodulator.Route
         name: req.files.file.name
         client_id: parseInt req.body.client_id, 10
         percentage: 0
-        storeLevel: 1
+        storeLevel: 3
         idxStoreLevel: 0
         size: req.files.file.size
         piSize: 0
@@ -46,9 +46,11 @@ class FileRoute extends Nodulator.Route
         file.Save (err) ->
           return res.status(500).send err if err?
 
+          console.log 'Original file size', file.size
           zlib.gzip fs.readFileSync(req.files.file.path), (err, compressed) ->
             return res.status(500).send err if err?
 
+            console.log 'Compressed file size', compressed.length
             res.status(200).send file
 
             fs.writeFileSync req.files.file.path, compressed

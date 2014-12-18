@@ -41,16 +41,23 @@ module.exports.Init = ->
         return error e if e?
 
         if err? and err is 'Error not found'
-          if file.isIndexed or file.storeLevel < 5
-            return error err
-          else
-            file.isIndexed = true
-            file.idxStoreLevel = 0
-            file.percentage = 0
-            file.Save (err) ->
-              return error e if e?
+          #if file.isIndexed or file.storeLevel < 5
+          # if file.isIndexed and file.size <
+          #   return error err
+          # else
+          # file.isIndexed = true
+          file.idxStoreLevel++
+          file.storeLevel = 3
+          file.percentage = 0
+          file.Save (err) ->
+            return error e if e?
 
-              fs.writeFileSync srcPath, fs.readFileSync destPath
+            console.log 'Before compress', file.idxStoreLevel, ', raw size', file.piSize
+            zlib.gzip fs.readFileSync(destPath), (err, compressed) ->
+              console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length
+              return error e if err?
+
+              fs.writeFileSync srcPath, compressed
               getHash file, srcPath, destPath
 
           clearInterval timer
@@ -60,10 +67,10 @@ module.exports.Init = ->
           return console.error err if err?
 
 
-        if file.isIndexed
-          file.idxStoreLevel++
-        else
-          file.storeLevel++
+        # if file.isIndexed
+        #   file.idxStoreLevel++
+        # else
+        file.storeLevel++
 
         file.percentage = 100
         file.piSize = hash.length * 4
@@ -76,7 +83,7 @@ module.exports.Init = ->
           clearInterval timer
           getHash file, srcPath, destPath
 
-    if f.isIndexed
-      piFS.GetHash srcPath, destPath, f.idxStoreLevel + 1, callback
-    else
-      piFS.GetHash srcPath, destPath, f.storeLevel + 1, callback
+    # if f.isIndexed
+    #   piFS.GetHash srcPath, destPath, f.idxStoreLevel + 1, callback
+    # else
+    piFS.GetHash srcPath, destPath, f.storeLevel + 1, callback
