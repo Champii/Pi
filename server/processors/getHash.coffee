@@ -60,7 +60,7 @@ module.exports.Init = ->
             zlib.gzip fs.readFileSync(destPath), (err, compressed) ->
               console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length, err
               return error e if err?
-              if file.piSize >= compressed
+              if file.piSize <= compressed
                 file.maxLevel = true
                 return file.Save()
 
