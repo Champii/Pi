@@ -34,7 +34,7 @@ class FileRoute extends Nodulator.Route
         name: req.files.file.name
         client_id: parseInt req.body.client_id, 10
         percentage: 0
-        storeLevel: 1
+        storeLevel: 2
         idxStoreLevel: 0
         size: req.files.file.size
         piSize: 0
