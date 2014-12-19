@@ -11,7 +11,7 @@ module.exports = {
     piPath: "/data/prog/js/Pi/server/storage/pi/",
 
     piPartSize: 250000000,
-    piFileSlice: 250000,
+    piFileSlice: 2500000,
 
     redis: {
       host: "1.1.1.7",

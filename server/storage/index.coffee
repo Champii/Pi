@@ -24,11 +24,14 @@ class PiFS
 
       fs.readSync pi[filePart], file, i * storeLevel, storeLevel, v
 
+    for fd in pi
+      fs.closeSync fd
+
     file
 
   GetHash: (srcPath, destPath, storeLevel, done) ->
     p = path.resolve __dirname, 'async_run.coffee'
-    exec p + ' ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
+    exec 'coffee ' + p + ' ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
       return done err if err?
 
       fs.open destPath + '_tmp', 'r', (err, fd) =>
@@ -128,7 +131,14 @@ class PiFS
     new Buffer new Uint8Array arrBuff
 
   BufferToArray32: (buffer) ->
-    ab = new ArrayBuffer buffer.length
+    console.log buffer.length
+    length = buffer.length + (4 - (buffer.length % 4))
+    console.log length
+
+      # console.log 'Alignement to ', buffer.length % 4
+      # newBuff = new Buffer buffer.length + (buffer.length % 4)
+
+    ab = new ArrayBuffer length
     view = new Uint8Array ab
 
     for v, i in buffer

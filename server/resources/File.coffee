@@ -14,6 +14,8 @@ config = new Settings(require '../../settings/config')
 
 piFS = require '../storage'
 
+FileCluster = require './FileCluster'
+
 getFile = (file) ->
   res = null
   if file.isIndexed
@@ -51,10 +53,15 @@ class FileRoute extends Nodulator.Route
             return res.status(500).send err if err?
 
             console.log 'Compressed file size', compressed.length
-            res.status(200).send file
 
             fs.writeFileSync req.files.file.path, compressed
-            Nodulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
+
+            FileCluster.NewFile file.id, req.files.file.path, (err) ->
+              return res.status(500).send err if err?
+
+              res.status(200).send file
+
+            # Nodulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
 
     @Add 'get', '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->

@@ -51,8 +51,8 @@ module.exports.Init = ->
           # console.log 'Before compress', file.idxStoreLevel, ', raw size', hash.length * 4
           zlib.gzip fs.readFileSync(destPath), (err, compressed) ->
             # console.log 'Pass', file.idxStoreLevel, ', compressed size', compressed.length, err
-            return error e if err?
-            if hash.length * 4 <= compressed.length
+            return error err if err?
+            if hash? and hash.length * 4 <= compressed.length
               file.maxLevel = true
               file.piSize = hash.length * 4
               file.percentage = 100
