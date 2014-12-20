@@ -52,12 +52,13 @@ class FileRoute extends Nodulator.Route
           zlib.gzip fs.readFileSync(req.files.file.path), (err, compressed) ->
             return res.status(500).send err if err?
 
-            console.log 'Compressed file size', compressed.length
+            console.log 'Compressed file size', compressed
 
             fs.writeFileSync req.files.file.path, compressed
 
-            FileCluster.NewFile file.id, req.files.file.path, (err) ->
+            FileCluster.NewFile file.id, req.files.file.path, compressed.length, (err) ->
               return res.status(500).send err if err?
+              console.log 'lol'
 
               res.status(200).send file
 

@@ -1,0 +1,31 @@
+div.well(style="height: 94%")
+  | PiWorker
+  div
+    | Time elapsed {{workerService.GetTimeElapsed()}}s
+  br
+  .container
+    .row
+      .col-xs-6.well
+        | Pi
+        div
+          | Downloading ... {{workerService.piLength}}
+        div(ng-show="workerService.preparePiPercentage")
+          | Preparing ..... {{workerService.preparePiPercentage}}%
+      .col-xs-6.well
+        | File
+        div
+          | Downloading ... {{workerService.fileLength}}
+        div(ng-show="workerService.prepareFilePercentage")
+          | Preparing ..... {{workerService.prepareFilePercentage}}%
+  .well
+    div
+      | Working: {{workerService.percentage}}%
+    div
+      | Average testing time {{workerService.averageTestingTime}}/s
+    div
+      | Average finding time {{workerService.averageFindingTime}}/m
+    div
+      | Found :{{workerService.found}}
+    div
+      | Parts processed :{{workerService.partCount}}
+    //- input(type="text", id="perfSlider", ng-model="lol")

@@ -131,13 +131,7 @@ class PiFS
     new Buffer new Uint8Array arrBuff
 
   BufferToArray32: (buffer) ->
-    console.log buffer.length
     length = buffer.length + (4 - (buffer.length % 4))
-    console.log length
-
-      # console.log 'Alignement to ', buffer.length % 4
-      # newBuff = new Buffer buffer.length + (buffer.length % 4)
-
     ab = new ArrayBuffer length
     view = new Uint8Array ab
 
@@ -145,6 +139,24 @@ class PiFS
         view[i] = v
 
     Array.prototype.slice.call new Uint32Array ab
+
+  Array8ToBuffer: (arr) ->
+    arrBuff = new ArrayBuffer arr.length * 4
+    view = new Uint8Array arrBuff
+
+    for v, i in arr
+      view[i] = v
+
+    new Buffer new Uint8Array arrBuff
+
+  BufferToArray8: (buffer) ->
+    ab = new ArrayBuffer buffer.length
+    view = new Uint8Array ab
+
+    for v, i in buffer
+        view[i] = v
+
+    Array.prototype.slice.call new Uint8Array ab
 
 module.exports = new PiFS
 

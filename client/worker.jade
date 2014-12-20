@@ -1,0 +1,14 @@
+html
+  head
+    title Worker
+    | !{cachify_css('/css/app.css')}
+    | !{cachify_js('/js/app_head.js')}
+    script.
+      var __user = !{JSON.stringify(user)};
+
+  body(ng-app="app")
+
+    worker
+
+    | !{cachify_js('/js/app_body.js')}
+    | !{nodulator()}
