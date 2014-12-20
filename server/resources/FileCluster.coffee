@@ -129,6 +129,7 @@ class FileCluster extends Nodulator.Resource 'filecluster', FileClusterRoute
   constructor: (blob) ->
     super blob
     @clients = JSON.parse @clients if typeof @clients is 'string'
+    console.log typeof(@clients), @clients
 
   Serialize: ->
     _(super()).extend
@@ -138,26 +139,17 @@ class FileCluster extends Nodulator.Resource 'filecluster', FileClusterRoute
     FileCluster.List (err, fileClusters) ->
       return done err if err?
 
-#      fileCluster = fileClusters[0]
       if not fileClusters.length
         return done {err: 'no clusters'}
 
-      fileCluster = _(fileClusters).reduce (item, memo) ->
-        if item.clients.length < memo
-          item.clients.length
-        else
-          memo
+      fileCluster = _(fileClusters).min (item) -> _(item.clients).size()
 
-      if not fileCluster?
+      if not fileCluster? of fileCluster is Infinity
         return done {err: 'no clusters'}
 
       pi = 0
-      if fileCluster.clients.length
-        pi = _(fileCluster.clients).reduce (item, memo) ->
-          if item.piGlobalPart >= memo
-            item.piGlobalPart + 1
-          else
-            memo
+      if _(fileCluster.clients).keys().length
+        pi = _(fileCluster.clients).chain().pluck('piGlobalPart').max().value() + 1
       else if fileCluster.piProcessed.length
         pi = _(fileCluster.piProcessed).max() + 1
       else
@@ -171,7 +163,7 @@ class FileCluster extends Nodulator.Resource 'filecluster', FileClusterRoute
 
       fileCluster.Save (err) ->
         return done err if err?
-        console.log 'FILECLUSTER', fileCluster
+
         done null, fileCluster
 
   @NewFile: (fileId, filePath, fileSize, done) ->
@@ -182,7 +174,6 @@ class FileCluster extends Nodulator.Resource 'filecluster', FileClusterRoute
       parts: []
       piProcessed: []
       clients: {}
-      currentBufferIdx: 0
       storeLevel: 4
 
     for i in [0...fileSize / fileChunkSize]
