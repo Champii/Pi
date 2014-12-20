@@ -149,7 +149,9 @@ class FileCluster extends Nodulator.Resource 'filecluster', FileClusterRoute
 
       pi = 0
       if _(fileCluster.clients).keys().length
-        pi = _(fileCluster.clients).chain().pluck('piGlobalPart').max().value() + 1
+        pi = _(fileCluster.clients).chain().pluck('piGlobalPart').max().value()
+        if fileCluster.piProcessed.length and pi is in fileCluster.piProcessed
+          pi = _(fileCluster.piProcessed).max() + 1
       else if fileCluster.piProcessed.length
         pi = _(fileCluster.piProcessed).max() + 1
       else
