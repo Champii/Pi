@@ -2,8 +2,9 @@
   "name": "app",
   "version": "0.0.2",
   "dependencies": {
-    "nodulator": "0.0.5",
-    "nodulator-assets": "0.0.3",
-    "nodulator-angular": "0.0.4"
+    "nodulator": "0.0.8",
+    "nodulator-socket": "0.0.2",
+    "nodulator-assets": "0.0.7",
+    "nodulator-angular": "0.0.7"
   }
 }

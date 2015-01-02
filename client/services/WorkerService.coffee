@@ -36,11 +36,11 @@ class WorkerService extends Nodulator.Service 'worker', '$http', 'socket', '$roo
 
     for test, i in @testingSpeed when i < @testingSpeed.length - 1
       # console.log @testingSpeed[i + 1], test, @testingSpeed[i + 1] - test
-      @averageTestingTime += @testingSpeed[i + 1] - test
+      @averageTestingTime += (@testingSpeed[i + 1] - test)
 
     if @testingSpeed.length
       @averageTestingTime /= @testingSpeed.length
-      @averageTestingTime = Math.floor(1 / (@averageTestingTime / 1000))
+      @averageTestingTime = Math.floor(1 / @averageTestingTime)
 
     for test, i in @findingSpeed when i < @findingSpeed.length - 1
       # console.log @findingSpeed[i + 1], test, @findingSpeed[i + 1] - test
@@ -77,7 +77,8 @@ class WorkerService extends Nodulator.Service 'worker', '$http', 'socket', '$roo
   #       @Process()
 
   PrepareFile: (fileBuffer, i) ->
-    if i < fileBuffer.length
+    # if i < fileBuffer.length
+    if 0
       # console.log i
       fileArr.push JSON.stringify(@MakeBufferArray(fileBuffer, i))
       @prepareFilePercentage = ((i / fileBuffer.length) * 100).toFixed 1
@@ -91,16 +92,23 @@ class WorkerService extends Nodulator.Service 'worker', '$http', 'socket', '$roo
         @PrepareFile fileBuffer, i + @fileCluster.storeLevel
     else
       @prepareFilePercentage = 100
-      console.log fileArr
       @i = 0
+      console.log fileBuffer, piBuffer
       @Process()
+
+  MakeInt: (buffer, i) ->
+    t = 0
+    for j in [0...@fileCluster.storeLevel]
+      t += buffer[i + j] * Math.pow(255, j)
+    t
+
 
 # LOOK INTO PI
   Process: ->
     if @i < piBuffer.length
 
       # if (j = piArr.indexOf(fileArr[@i])) isnt -1
-      if (j = fileArr.indexOf(JSON.stringify @MakeBufferArray piBuffer, @i)) isnt -1
+      if (j = fileBuffer.indexOf(@MakeInt piBuffer, @i)) isnt -1
         @res[j] = @i
         @found++
         console.log @i, j, @res

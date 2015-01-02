@@ -14,8 +14,6 @@ html.bg-black
       script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
       script(src='https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js')
 
-    | !{cachify_css('/css/app.css')}
-    | !{cachify_js('/js/app_head.js')}
     script.
       var __user = !{JSON.stringify(user)};
 
@@ -26,6 +24,5 @@ html.bg-black
 
     auth
 
-    script(src='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js', type='text/javascript')
-    | !{cachify_js('/js/app_body.js')}
     | !{nodulator()}
+    script(src='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js', type='text/javascript')

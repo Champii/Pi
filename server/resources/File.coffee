@@ -7,14 +7,11 @@ multipartMiddleware = require('connect-multiparty')()
 
 Nodulator = require 'nodulator'
 
-File = require './File'
-
 Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 
 piFS = require '../storage'
 
-FileCluster = require './FileCluster'
 
 getFile = (file) ->
   res = null
@@ -30,7 +27,7 @@ getFile = (file) ->
 class FileRoute extends Nodulator.Route
   Config: ->
 
-    @Add 'post', '', multipartMiddleware, (req, res) ->
+    @Post multipartMiddleware, (req, res) ->
       toSave =
         parent_id: parseInt req.body.parent_id, 10
         name: req.files.file.name
@@ -64,7 +61,7 @@ class FileRoute extends Nodulator.Route
 
             # Nodulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
 
-    @Add 'get', '/:id', (req, res) ->
+    @Get '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
         return res.status(500).send err if err?
 
@@ -78,7 +75,7 @@ class FileRoute extends Nodulator.Route
           res.status(200).write(f, 'binary')
           res.end()
 
-    @Add 'put', '/:id', (req, res) ->
+    @Put '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
         return res.status(500).send err if err?
 
@@ -100,3 +97,4 @@ class File extends Nodulator.Resource 'file', FileRoute
 File.Init()
 
 module.exports = File
+FileCluster = require './FileCluster'
