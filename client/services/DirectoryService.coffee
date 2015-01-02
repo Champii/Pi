@@ -20,6 +20,8 @@ class DirectoryService extends Nodulator.ResourceService 'directory', 'userServi
       @piSize = _(data.child).reduce (memo, item) ->
         memo + item.piSize
       , 0
+
+      @ratio = ((1 - (@piSize / @totalSize)) * 100).toFixed(1)
       done data if done?
 
   OnUpdate: (f) ->

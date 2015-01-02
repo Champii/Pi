@@ -7,12 +7,11 @@ multipartMiddleware = require('connect-multiparty')()
 
 Nodulator = require 'nodulator'
 
-File = require './File'
-
 Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 
 piFS = require '../storage'
+
 
 getFile = (file) ->
   res = null
@@ -28,13 +27,13 @@ getFile = (file) ->
 class FileRoute extends Nodulator.Route
   Config: ->
 
-    @Add 'post', '', multipartMiddleware, (req, res) ->
+    @Post multipartMiddleware, (req, res) ->
       toSave =
         parent_id: parseInt req.body.parent_id, 10
         name: req.files.file.name
         client_id: parseInt req.body.client_id, 10
         percentage: 0
-        storeLevel: 1
+        storeLevel: 2
         idxStoreLevel: 0
         size: req.files.file.size
         piSize: 0
@@ -46,15 +45,23 @@ class FileRoute extends Nodulator.Route
         file.Save (err) ->
           return res.status(500).send err if err?
 
+          console.log 'Original file size', file.size
           zlib.gzip fs.readFileSync(req.files.file.path), (err, compressed) ->
             return res.status(500).send err if err?
 
-            res.status(200).send file
+            console.log 'Compressed file size', compressed
 
             fs.writeFileSync req.files.file.path, compressed
-            Nodulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
 
-    @Add 'get', '/:id', (req, res) ->
+            FileCluster.NewFile file.id, req.files.file.path, compressed.length, (err) ->
+              return res.status(500).send err if err?
+              console.log 'lol'
+
+              res.status(200).send file
+
+            # Nodulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
+
+    @Get '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
         return res.status(500).send err if err?
 
@@ -68,7 +75,7 @@ class FileRoute extends Nodulator.Route
           res.status(200).write(f, 'binary')
           res.end()
 
-    @Add 'put', '/:id', (req, res) ->
+    @Put '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
         return res.status(500).send err if err?
 
@@ -90,3 +97,4 @@ class File extends Nodulator.Resource 'file', FileRoute
 File.Init()
 
 module.exports = File
+FileCluster = require './FileCluster'

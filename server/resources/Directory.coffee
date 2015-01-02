@@ -9,7 +9,7 @@ class DirectoryRoute extends Nodulator.Route.DefaultRoute
   Config: ->
     super()
 
-    @Add 'get', '/:id', (req, res) ->
+    @Get '/:id', (req, res) ->
       Directory.ListChild req.directory.id, (err, dirs) ->
         return res.status(500).send err if err?
 
@@ -17,7 +17,7 @@ class DirectoryRoute extends Nodulator.Route.DefaultRoute
         dir.child = _(dirs).invoke 'ToJSON'
         res.status(200).send dir
 
-    @Add 'post', (req, res) ->
+    @Post (req, res) ->
       Directory.Deserialize req.body, (err, result) ->
         return res.status(500).send(err) if err?
 
