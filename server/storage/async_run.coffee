@@ -1,5 +1,5 @@
-piFS = require './'
 fs = require 'fs'
+piFS = require './'
 
 
 piFS._GetHash process.argv[2], process.argv[3], parseInt(process.argv[4], 10)

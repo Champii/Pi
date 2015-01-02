@@ -18,7 +18,7 @@ class ClientRoute extends Nodulator.Route.DefaultRoute
   Config: ->
     super()
 
-    @Add 'post', (req, res) ->
+    @Post (req, res) ->
       async.auto
         checkUser: (done) ->
           Client.FetchBy 'login', req.body.login, (err, client) ->

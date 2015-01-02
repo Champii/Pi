@@ -2,6 +2,7 @@ fs = require 'fs'
 async = require 'async'
 exec = require('child_process').exec
 _ = require 'underscore'
+path = require 'path'
 Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 require('buffertools').extend()
@@ -23,22 +24,29 @@ class PiFS
 
       fs.readSync pi[filePart], file, i * storeLevel, storeLevel, v
 
+    for fd in pi
+      fs.closeSync fd
+
     file
 
   GetHash: (srcPath, destPath, storeLevel, done) ->
-    exec 'coffee ./server/storage/async_run.coffee ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
+    p = path.resolve __dirname, 'async_run.coffee'
+    exec 'coffee ' + p + ' ' + srcPath + ' ' +  destPath + ' ' + storeLevel, (err, stdout, stderr) =>
       return done err if err?
 
-      err = fs.readFileSync destPath + '_tmp'
-      fs.unlinkSync destPath + '_tmp'
+      fs.open destPath + '_tmp', 'r', (err, fd) =>
+        if not err?
+          errMess = fs.readFileSync destPath + '_tmp'
+          fs.closeSync fd
+          fs.unlinkSync destPath + '_tmp'
 
-      if err.toString() is 'Error not found'
-        return done 'Error not found'
+          if errMess.toString() is 'Error not found'
+            return done 'Error not found'
 
-      fs.readFile destPath, (err, res) =>
-        return done err if err?
+        fs.readFile destPath, (err, res) =>
+          return done err if err?
 
-        done null, @BufferToArray32 res
+          done null, @BufferToArray32 res
 
   _GetHash: (srcPath, destPath, storeLevel) ->
     srcBuffer = fs.readFileSync srcPath
@@ -47,12 +55,14 @@ class PiFS
     fs.writeFileSync tmpPath, 0 + ''
 
     arr = []
+
     chunk = new Buffer(storeLevel)
     for i in [0...srcBuffer.length] by storeLevel
       srcBuffer.copy(chunk, 0, i, i + storeLevel)
       arr.push chunk.toJSON()
 
-    async.map arr, ((item, done) -> cache.GetFromCache storeLevel, item, done), (err, hash) =>
+    async.map arr, ((item, done) -> parseInt(cache.GetFromCache(storeLevel, item, done), 10)), (err, hash) =>
+      fs.writeFileSync tmpPath, Math.floor((_(hash).filter((item) -> item?).length / hash.length) * 100) + ''
       @__GetHash srcPath, destPath, storeLevel, tmpPath, 0, srcBuffer, 0, hash, _(hash).reject((item) -> not item?).length
 
   __GetHash: (srcPath, destPath, storeLevel, tmpPath, piFile, srcBuffer, oldI, hash, cacheSize = 0) ->
@@ -69,7 +79,7 @@ class PiFS
       percent = 0
       chunk = new Buffer(storeLevel)
       for i in [oldI...srcBuffer.length] by storeLevel
-        if hash[i]?
+        if hash[i / storeLevel]?
           continue
 
         srcBuffer.copy(chunk, 0, i, i + storeLevel)
@@ -86,12 +96,12 @@ class PiFS
 
           found = true
           old = percent
-          percent = Math.floor((cacheSize / srcBuffer.length) * 100) + Math.floor((i / srcBuffer.length) * (100 - cacheSize))
+          percent = Math.floor((_(hash).filter((item) -> item?).length / hash.length) * 100)#Math.floor((cacheSize / srcBuffer.length) * 100) + Math.floor((i / srcBuffer.length) * (100 - cacheSize))
 
           j = j + (piFile * config.piPartSize) + (sliceCount * config.piFileSlice)
           hash[Math.floor(i / storeLevel)] = j
 
-          cache.PutInCache storeLevel, chunk, j
+          require('./async_cache')(storeLevel, chunk.toJSON(), j.toString())
 
           sliceCount = 0
 
@@ -103,6 +113,7 @@ class PiFS
 
       fs.writeFileSync destPath, @Array32ToBuffer hash
       cache.Quit()
+      return
 
   GetPercentage: (destPath, done) ->
     fs.readFile destPath, (err, file) ->
@@ -120,13 +131,32 @@ class PiFS
     new Buffer new Uint8Array arrBuff
 
   BufferToArray32: (buffer) ->
-    ab = new ArrayBuffer buffer.length
+    length = buffer.length + (4 - (buffer.length % 4))
+    ab = new ArrayBuffer length
     view = new Uint8Array ab
 
     for v, i in buffer
         view[i] = v
 
     Array.prototype.slice.call new Uint32Array ab
+
+  Array8ToBuffer: (arr) ->
+    arrBuff = new ArrayBuffer arr.length * 4
+    view = new Uint8Array arrBuff
+
+    for v, i in arr
+      view[i] = v
+
+    new Buffer new Uint8Array arrBuff
+
+  BufferToArray8: (buffer) ->
+    ab = new ArrayBuffer buffer.length
+    view = new Uint8Array ab
+
+    for v, i in buffer
+        view[i] = v
+
+    Array.prototype.slice.call new Uint8Array ab
 
 module.exports = new PiFS
 

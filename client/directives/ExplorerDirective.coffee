@@ -39,7 +39,12 @@ class ExplorerDirective extends Nodulator.Directive 'explorer', '$http', 'direct
       return
 
     @uploader.onCompleteItem = (fileItem, response, status, headers) =>
+      console.log 'Complete'
       @directoryService.Refresh()
+      return
+
+    @uploader.onProgress = (progress) ->
+      console.log progress
       return
 
 ExplorerDirective.Init()
