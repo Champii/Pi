@@ -9,10 +9,9 @@ Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 
 userConfig =
-  account:
-    fields:
-      usernameField: 'login'
-      passwordField: 'pass'
+  fields:
+    usernameField: 'login'
+    passwordField: 'pass'
 
 class ClientRoute extends Nodulator.Route.DefaultRoute
   Config: ->
@@ -50,7 +49,7 @@ class ClientRoute extends Nodulator.Route.DefaultRoute
 
         res.status(200).end()
 
-class Client extends Nodulator.Resource 'client', ClientRoute, userConfig
+class Client extends Nodulator.AccountResource 'client', ClientRoute, userConfig
 
 Client.Init()
 
