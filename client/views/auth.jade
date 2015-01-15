@@ -1,21 +1,27 @@
 div
-  div(ng-show="state == 'login'")
+  div(ng-show="StateIsLogin()")
     #login-box.form-box
       .header Sign In
       form
         .body.bg-gray
-          .form-group
+          p.text-center.text-danger(ng-show="error.length")
+            | Seems that something went wrong: {{error}}
+          .form-group(ng-class="{'has-error':error.length}")
             input.form-control(type='text', ng-model='ident.login', placeholder='Login')
-          .form-group
+          .form-group(ng-class="{'has-error':error.length}")
             input.form-control(type='password', ng-model='ident.pass', placeholder='Password')
           .form-group
             input(type='checkbox', name='remember_me')
             |  Remember me
         .footer
           button.btn.bg-olive.btn-block(type='submit', ng-click="Auth()") Sign me in
-          p
-            a(href='#') I forgot my password
-          a.text-center(href="", ng-click="Toggle()") Register a new membership
+          //- p
+          //-   a(href='#') I forgot my password
+          p.text-right
+            a(href="#", ng-click="Toggle()")
+              i.fa.fa-chevron-right
+            | 
+            a(href='#', ng-click="Toggle()") Register a new membership
       .margin.text-center
         span Sign in using social networks
         br
@@ -26,7 +32,7 @@ div
         button.btn.bg-red.btn-circle
           i.fa.fa-google-plus
 
-  div(ng-show="state == 'signup'")
+  div(ng-show="StateIsSignUp()")
     #login-box.form-box
       .header Register New Membership
       form
@@ -39,7 +45,11 @@ div
             input.form-control(type='password', ng-model='ident.pass2', placeholder='Retype password')
         .footer
           button.btn.bg-olive.btn-block(ng-click="Signup()") Sign me up
-          a.text-center(href="", ng-click="Toggle()") I already have a membership
+          p.text-left
+            a(href="#", ng-click="Toggle()")
+              i.fa.fa-chevron-left
+            | 
+            a(href="", ng-click="Toggle()") I already have a membership
       .margin.text-center
         span Register using social networks
         br
@@ -49,5 +59,3 @@ div
           i.fa.fa-twitter
         button.btn.bg-red.btn-circle
           i.fa.fa-google-plus
-  div(ng-show="error.length")
-    | {{error}}

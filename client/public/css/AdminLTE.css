@@ -2436,7 +2436,6 @@ Component: timeline
 }
 .form-box .body > .form-group > input,
 .form-box .footer > .form-group > input {
-  border: #fff;
 }
 .form-box .body > .btn,
 .form-box .footer > .btn {
