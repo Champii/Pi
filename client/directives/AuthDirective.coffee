@@ -2,8 +2,8 @@ class AuthDirective extends Nodulator.Directive 'auth', '$window', '$http', 'use
 
   state: 'login'
   ident:
-    login: 'test'
-    pass: 'test'
+    login: ''
+    pass: ''
 
   Auth: ->
     @$http.post('/api/1/clients/login', @ident)
@@ -32,5 +32,6 @@ class AuthDirective extends Nodulator.Directive 'auth', '$window', '$http', 'use
       @state = 'signup'
     else if @state is 'signup'
       @state = 'login'
+    @ident.login = @ident.pass = ''
 
 AuthDirective.Init()
