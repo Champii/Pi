@@ -6,7 +6,7 @@ html
     meta(content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no', name='viewport')
     // Ionicons
 
-  body.skin-blue
+  body.skin-blue(ng-controller='PiCtrl')
     // header logo: style can be found in header.less
     header.header
       a.logo(href='index.jade')
@@ -175,20 +175,20 @@ html
               a.dropdown-toggle(href='#', data-toggle='dropdown')
                 i.glyphicon.glyphicon-user
                 span
-                  | [Jane Doe]
+                  | [{{GetUsername()}}]
                   i.caret
               ul.dropdown-menu
                 li.user-header.bg-light-blue
                   img.img-circle(src='img/avatar3.png', alt='User Image')
                   p
-                    | Jane Doe - Web Developer
+                    | {{GetUsername()}} - Web Developer
                     small Member since Nov. 2012
                 // Menu Footer
                 li.user-footer
                   .pull-left
-                    a.btn.btn-default.btn-flat(href='#') Profile
+                    a.btn.btn-default.btn-flat(href) Profile
                     .pull-right
-                    a.btn.btn-default.btn-flat(href='#') Sign out
+                    a.btn.btn-default.btn-flat(href, ng-click='SignOut()') Sign out
     .wrapper.row-offcanvas.row-offcanvas-left
       // Left side column. contains the logo and sidebar
       aside.left-side.sidebar-offcanvas
@@ -199,7 +199,7 @@ html
             .pull-left.image
               img.img-circle(src='img/avatar3.png', alt='User Image')
             .pull-left.info
-              p Hello, Jane
+              p Hello, {{GetUsername()}}
               a(href='#')
                 i.fa.fa-circle.text-success
                 |  Online
@@ -218,7 +218,7 @@ html
                 i.fa.fa-dashboard
                 span Dashboard
             li
-              a(onclick="window.open('/worker', 'lol', 'height=387,width=641');")
+              a(href, onclick="window.open('/worker', 'lol', 'height=387,width=641');")
                 i.fa.fa-dashboard
                 span Worker
 

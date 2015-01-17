@@ -1,9 +1,9 @@
-class AuthDirective extends Nodulator.Directive 'auth', '$window', '$http', 'userService'
+class AuthDirective extends Nodulator.Directive 'auth', '$window', '$http', '$timeout', 'userService'
 
   state: 'login'
   ident:
-    login: 'test'
-    pass: 'test'
+    login: ''
+    pass: ''
 
   Auth: ->
     @$http.post('/api/1/clients/login', @ident)
@@ -11,10 +11,10 @@ class AuthDirective extends Nodulator.Directive 'auth', '$window', '$http', 'use
         @$window.location.href = '/'
       .error (data) =>
         @error = data
-        setTimeout =>
+        @$timeout =>
           @$apply =>
             @error = ''
-        , 10000
+        , 5000
 
   Signup: ->
     @$http.post('/api/1/clients', @ident)
@@ -22,15 +22,22 @@ class AuthDirective extends Nodulator.Directive 'auth', '$window', '$http', 'use
         @Auth()
       .error (data) =>
         @error = data
-        setTimeout =>
+        @$timeout =>
           @$apply =>
             @error = ''
-        , 10000
+        , 5000
 
-  Toggle: ->
-    if @state is 'login'
+  Toggle: =>
+    if do @StateIsLogin
       @state = 'signup'
-    else if @state is 'signup'
+    else if do @StateIsSignUp
       @state = 'login'
+    @ident.login = @ident.pass = ''
+
+  StateIsLogin: =>
+    @state is "login"
+
+  StateIsSignUp: =>
+    @state is "signup"
 
 AuthDirective.Init()
