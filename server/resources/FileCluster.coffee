@@ -9,13 +9,26 @@ config = new Settings(require '../../settings/config')
 
 piFS = require '../storage'
 
+ccFS = require '../storage/ccFS'
+
 fileChunkSize = 50000
+
+Client = require './Client'
 
 class FileClusterRoute extends Nodulator.Route
   Config: ->
     super()
 
     Nodulator.ExtendBeforeRun =>
+      @All '*', (req, res, next) =>
+        return res.status(500).send {err: 'Bad idents'} if not req.query.username? or not req.query.password?
+
+        Client.FetchByLogin req.query.username, (err, client) =>
+          return res.status(500).send {err: 'Bad idents'} if err? or client.pass isnt req.query.password
+
+          req.user = client
+          next()
+
       @All '/:id*', (req, res, next) =>
         FileCluster.Fetch req.params.id, (err, fileCluster) ->
           return res.status(500).send err if err?
@@ -23,29 +36,15 @@ class FileClusterRoute extends Nodulator.Route
           req.fileCluster = fileCluster
           next()
 
-      # Body empty means first call so no results
-      @Put '/:id/found', (req, res) =>
+      # Get file part to test
+      @Get '/:id/file', (req, res) =>
+        return res.status(500).send {err: 'No user'} if not req.fileCluster.clients[req.user.id]
 
         filePart = req.fileCluster.clients[req.user.id].filePart
 
         part = []
         if filePart isnt -1
           part = JSON.parse fs.readFileSync req.fileCluster.filePath + '_' + filePart
-
-          added = 0
-          for i, v of req.body.res
-            if part[i] is -1
-              part[i] = v
-              added++
-
-          if added
-            File.Fetch req.fileCluster.fileId, (err, file) ->
-              return console.error err if err?
-
-              file.percentage += added / (file.size * file.storeLevel)
-
-              file.Save (err) ->
-                return console.error err if err?
 
           if _(part).contains -1
             fs.writeFileSync req.fileCluster.filePath + '_' + filePart, JSON.stringify part
@@ -61,7 +60,7 @@ class FileClusterRoute extends Nodulator.Route
 
         filePart = _(req.fileCluster.parts).find (item) -> not _(req.fileCluster.clients[req.user.id].processed).contains item
         if not filePart?
-          req.fileCluster.piProcessed.push req.fileCluster.clients[req.user.id].piGlobalPart
+          req.fileCluster.ccProcessed.push req.fileCluster.clients[req.user.id].piGlobalPart
           delete req.fileCluster.clients[req.user.id]
           req.fileCluster.Save (err) ->
             res.status(500).send {status: 'changeCluster'}
@@ -69,61 +68,51 @@ class FileClusterRoute extends Nodulator.Route
 
         req.fileCluster.clients[req.user.id].filePart = filePart
 
-        #####
-
-        #####
-
         fileFd = fs.openSync req.fileCluster.filePath, 'r'
-        buff = new Buffer fileChunkSize
-        read = fs.readSync fileFd, buff, 0, fileChunkSize, filePart * fileChunkSize
+        size = _([fileChunkSize, req.fileCluster.fileSize]).min()
+        buff = new Buffer size
+        read = fs.readSync fileFd, buff, 0, size, filePart * fileChunkSize
         fs.closeSync fileFd
 
-        req.fileCluster.Save (err) ->
-          return res.status(500).send err if err?
+        res.status(200).send buff
 
-          test = piFS.BufferToArray8 buff
-          r = []
-          for i in test by req.fileCluster.storeLevel
-            t = 0
-            for j in [0...req.fileCluster.storeLevel]
-              t += test[i + j] * Math.pow(255, j)
-            r.push t
+      @Put '/:id/found', (req, res) =>
 
-          res.status(200).send r
+        filePart = req.fileCluster.clients[req.user.id].filePart
+
+        console.log 'WHHATTTTTT'
+        part = []
+        if filePart isnt -1
+          part = JSON.parse fs.readFileSync req.fileCluster.filePath + '_' + filePart
+
+          added = 0
+
+          if part[req.body.idx] is -1
+            part[req.body.idx] = req.body.value
+            added++
+
+          if added
+            File.Fetch req.fileCluster.fileId, (err, file) ->
+              return console.error err if err?
+
+              file.percentage += added / (file.size * file.storeLevel)
+
+              file.Save (err) ->
+                return console.error err if err?
+
+                res.sendStatus(200)
+
+          else
+            res.status(500).send {err: 'No part added'}
+        else
+          res.sendStatus(200)
 
         # reward
         # get next buffer
         # emit change
 
-      @Get '/:id/pi', (req, res) =>
-        FileCluster.Fetch req.params.id, (err, fileCluster) ->
-          return res.status(500).send err if err?
-
-          piGlobalPart = _(fileCluster.clients).find((item) -> item.userId is req.user.id).piGlobalPart
-          piFile = Math.floor((piGlobalPart * fileChunkSize) / config.piFileSlice)
-
-          piFd = fs.openSync config.piPath + piFile, 'r'
-          buff = new Buffer config.piFileSlice
-          partInFile = (piGlobalPart - ((config.piPartSize / (piGlobalPart + 1)) * piFile))
-
-          fs.readSync piFd, buff, 0, config.piFileSlice, partInFile * config.piFileSlice
-          fs.closeSync piFd
-
-          # test = piFS.BufferToArray8 buff
-          # r = []
-          # for i in test by 4
-          #   t = 0
-          #   for j in [0...4]
-          #     t += test[i + j] * Math.pow(255, j)
-          #   r.push t
-
-          # console.log 'TEST', r, test
-
-
-          res.status(200).send piFS.BufferToArray8 buff
-          # res.status(200).send r
-
-      @Post (req, res) =>
+      #New Client
+      @Get (req, res) =>
         FileCluster.NewClient req.user, (err, fileCluster) =>
           return res.status(500).send err if err?
 
@@ -161,10 +150,10 @@ class FileCluster extends Nodulator.Resource 'filecluster', FileClusterRoute
       pi = 0
       if _(fileCluster.clients).keys().length
         pi = _(fileCluster.clients).chain().pluck('piGlobalPart').max().value() + 1
-        if fileCluster.piProcessed.length and pi in fileCluster.piProcessed
-          pi = _(fileCluster.piProcessed).max() + 1
-      else if fileCluster.piProcessed.length
-        pi = _(fileCluster.piProcessed).max() + 1
+        if fileCluster.ccProcessed.length and pi in fileCluster.ccProcessed
+          pi = _(fileCluster.ccProcessed).max() + 1
+      else if fileCluster.ccProcessed.length
+        pi = _(fileCluster.ccProcessed).max() + 1
       else
         pi = 0
 
@@ -185,7 +174,7 @@ class FileCluster extends Nodulator.Resource 'filecluster', FileClusterRoute
       filePath: filePath
       fileSize: fileSize
       parts: []
-      piProcessed: []
+      ccProcessed: []
       clients: {}
       storeLevel: 4
       percentage: 0
@@ -216,12 +205,6 @@ FileCluster.Init()
 module.exports = FileCluster
 
 
-# FileCluster model :
-# id
-# fileId
-# filePath
-# clients: {'clientId': ...}
-# currentBufferIdx
-# storeLevel
+
 
 File = require './File'

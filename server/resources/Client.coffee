@@ -53,4 +53,14 @@ class Client extends Nodulator.AccountResource 'client', ClientRoute, userConfig
 
 Client.Init()
 
+# # TEMP
+# Client.Deserialize
+#   login: 'test'
+#   pass: 'test'
+# , (err, client) ->
+#   return console.error err if err?
+
+#   client.Save (err) ->
+#     return console.error err if err?
+
 module.exports = Client

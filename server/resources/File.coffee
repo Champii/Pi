@@ -12,7 +12,6 @@ config = new Settings(require '../../settings/config')
 
 piFS = require '../storage'
 
-
 getFile = (file) ->
   res = null
   if file.isIndexed

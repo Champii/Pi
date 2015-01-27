@@ -8,10 +8,8 @@ module.exports = {
     },
 
     hashsPath: "/data/prog/js/Pi/server/storage/hashs/",
-    piPath: "/data/prog/js/Pi/server/storage/pi/",
 
-    piPartSize:  250000000,
-    piFileSlice: 2500000,
+    ccFileSlice: 2500000,
 
     redis: {
       host: "1.1.1.7",
@@ -43,9 +41,7 @@ module.exports = {
     },
 
     hashsPath: "/data/Pi/hashs/",
-    piPartSize:  12500000000,
-    piFileSlice: 12500000,
-    piPath: "/data_unsafe/pi/",
+    ccFileSlice: 12500000,
     cacheFile: "/data/Pi/pi/cache"
   },
 

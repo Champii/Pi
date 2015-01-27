@@ -10,5 +10,12 @@ Nodulator.Use Assets
 Nodulator.Use Angular
 Nodulator.Use Account
 
+# Nodulator.Config
+#   dbType: 'Mongo'
+#   dbAuth:
+#     database: 'pi'
+#     user: 'pi'
+#     pass: 'pi'
+
 Server.Init()
 Nodulator.Run()
