@@ -1,108 +1,152 @@
-_ = require 'underscore'
-
-ccChunkSize = 5000000
-
-# DigitNbWithin_ = (n) ->
-#  (9 * (Math.pow(10, n) * (n + 1)) - Math.pow(10, n + 1) + 1) / 9
-
-# Idx_ = (x) ->
-#   len = ('' + x).length
-#   (DigitNbWithin_(len - 1) + 1) + ((x - Math.pow(10, len - 1)) * len)
+fs = require 'fs'
+zlib = require 'zlib'
+bigint = require 'bigint'
 
 class CcFS
 
-  GetHash: (fileBuffer, chunkSize, offset, done) ->
-    seqs = @_MakeSeqs fileBuffer, chunkSize
-    @_FindAllSequences seqs, offset, done
+  GetHash: (file, done) ->
+    zlib.gzip file, (err, compressed) =>
+      return done err if err?
 
-  GetFile: (idxs, chunksize, done) ->
-    res = new Buffer(idxs.length * chunkSize)
-    tmp = ''
-    count = 0
-    for idx in idxs
-      i = 0
-      while i < chunkSize * 3
-        tmp += _GetDigitAt idx + i++
-        if tmp.length is 3
-          res[count++] = parseInt(tmp)
-          tmp = ''
-      tmp = ''
-    res
+      @_GetHash bigint.fromBuffer(compressed), done
 
-  _DigitNbWithin: (n) -> (9 * (Math.pow(10, n) * (n + 1)) - Math.pow(10, n + 1) + 1) / 9
+  GetFile: (hash, done) ->
+    zlib.gunzip hash.idx, (err, uncompressed) =>
+      return done err if err?
+
+      file = @_GetFile
+        idx: bigint.fromBuffer uncompressed
+        size: bigint hash.size
+
+      zlib.gunzip file.toBuffer(), (err, uncompressed) =>
+        return done err if err?
+
+        done null, uncompressed
+
+  _GetHash: (int, done) ->
+    hash = @__GetHash int
+
+    zlib.gzip hash.toBuffer(), (err, compressed) =>
+      return done err if err?
+
+      int2 = bigint.fromBuffer(compressed)
+
+      if int.toString().length > int2.toString().length
+        return @_GetHash int2, done
+
+      done null,
+        idx: compressed
+        size: int.toString().length
+
+  __GetHash: (file) ->
+    len = bigint file.toString().length
+    (@_DigitNbWithin(len.sub(1)).add(1)).add((len.mul(file.sub((bigint(10).pow(len.sub(1)))))))
+
+  _GetFile: (hash) ->
+    iOrig = bigint(hash.idx)
+    i = bigint(hash.idx)
+    res = ''
+    while i.lt(iOrig.add(hash.size))
+      nb = @_GetNumberAt(i).toString()
+      res += nb
+      i = i.add(nb.length)
+
+    res = res.substring 0, @_DigitNbWithin @_FindLowestInterval hash.idx
+    bigint res
+
+  _DigitNbWithin: (n) ->
+    ((((bigint(10).pow(n)).mul(9)).mul(n.add(1))).sub(bigint(10).pow(n.add(1))).add(1)).div(9)
 
   _GetContainingDigit: (a, nth) ->
-    Math.pow(10, a + 1) - 1 - Math.floor((@_DigitNbWithin(a + 1) - nth) / (a + 1))
+    bigint(10).pow(a.add(1)).sub(1).sub((@_DigitNbWithin(a.add(1)).sub(nth)).div(a.add(1)))
 
-  _GetDigitPos: (a, nth) -> (@_DigitNbWithin(a + 1) - nth) % (a + 1)
+  _GetDigitPos: (a, nth) ->
+    (@_DigitNbWithin(a.add(1)).sub(nth)).mod((a.add(1)))
 
   _FindLowestInterval: (nth) ->
-    i = 0
-    i++ while @_DigitNbWithin(i) < nth
-    i - 1
+    i = bigint nth.toString().length - 10
+    while @_DigitNbWithin(i).lt(nth)
+      i = i.add(1)
+    i.sub(1)
 
+  # Unused
   _GetDigitAt: (nth) ->
-    return 0 if not nth
+    return 0 if nth.eq(0)
     itv = @_FindLowestInterval nth
     containingDigit = @_GetContainingDigit itv, nth
     digitPos = @_GetDigitPos itv, nth
-    (containingDigit + '')[(containingDigit + '').length - digitPos - 1]
+    digit = containingDigit.toString()
+    digit[bigint(digit.length).sub(digitPos).sub(1)]
 
-  _FindAllSequences: (seqs, offset, done) ->
-    buff = ''
-    res = []
-    i = offset
-    elemCount = 0
-    count = 0
-
-    while buff.length < seqs[0].length
-      buff += @_GetDigitAt i++
-
-    while elemCount < seqs.length and count < ccChunkSize # TEMP VALUE
-      while (idx = seqs.indexOf buff) isnt -1
-        if not res[idx]
-          elemCount++
-          res[idx] = i - buff.length
-
-        process.stdout.cursorTo(0)
-        process.stdout.write "Found: " + (elemCount / seqs.length * 100).toFixed(2) + '%'
-        process.stdout.write " Bytes tested: " + (count / ccChunkSize * 100).toFixed(2) + '%'
-        seqs[idx] = ''
-
-      arrBuff = buff.split('')
-      arrBuff.shift()
-      arrBuff.push @_GetDigitAt i
-      buff = arrBuff.join('')
-
-      i++
-      count++
-
-    console.log 'Res !', res
-    done null, res
-
-  _MakeSeqs: (file, chunkSize) ->
-    seqSize = 0
-    tmp = ''
-    i = 0
-    res = []
-    for char in file
-      while (char + '').length < 3
-        char = '0' + char
-      tmp += char
-      seqSize++
-      if seqSize is chunkSize
-        res.push tmp
-        seqSize = 0
-        tmp = ''
-      i++
-
-    res
-
-  _CheckSum: (orig, crafted) ->
-    for value, i in orig
-      if crafted[i] isnt value
-        return false
-    return true
+  _GetNumberAt: (idx) ->
+    @_GetContainingDigit @_FindLowestInterval(idx), idx
 
 module.exports = new CcFS
 
+
+# ccFS = new CcFS
+
+# fs.readFile process.argv[2], {encoding: null}, (err, file) ->
+#   return console.error err if err?
+
+#   ccFS.GetHash file, (err, hash) ->
+#     return console.log err if err?
+
+#     ccFS.GetFile hash, (err, file) ->
+#       return console.log err if err?
+
+#       console.log file
+
+
+
+#   # console.log 'original file as bigint : ', bigint.fromBuffer(file)
+
+#   zlib.gzip file, (err, compressed1) ->
+#     return console.error err if err?
+
+#     console.log 'original file after first compression: '#, bigint.fromBuffer(compressed1)
+
+#     idx = Idx bigint.fromBuffer compressed1
+#     console.log 'found idx : '#, idx
+
+#     zlib.gzip idx.toBuffer(), (err, compressed2) ->
+#       return console.error err if err?
+
+#       console.log 'idx after second compression: '#, bigint.fromBuffer(compressed2)
+
+#       res =
+#         idx: compressed2
+#         size: idx.toString().length
+
+#       console.log 'Original size: ', file.length, ', Index size: ', compressed2.length
+
+#       ###
+#       Reverse process :
+#       ###
+
+#       console.log '###'
+#       console.log '###'
+#       console.log '###'
+#       console.log '###'
+
+#       zlib.gunzip res.idx, (err, uncompressed1) ->
+#         return console.error err if err?
+
+#         console.log 'idx after first decompression : '#, bigint.fromBuffer(uncompressed1)
+
+#         int = bigint.fromBuffer uncompressed1
+
+#         res2 =
+#           idx: int
+#           size: res.idx.toString().length
+
+#         compressedFile = GetFile res2
+
+#         console.log 'file found :                           '#, compressedFile
+
+#         zlib.gunzip compressedFile.toBuffer(), (err, uncompressed2) ->
+#           return console.error err if err?
+
+#           console.log 'idx after first decompression : '#, bigint.fromBuffer(uncompressed2)
+
+#           fs.writeFileSync '/tmp/test.out', uncompressed2
