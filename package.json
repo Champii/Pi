@@ -6,6 +6,7 @@
     "nodulator-socket": "0.0.3",
     "nodulator-assets": "0.0.8",
     "nodulator-angular": "0.0.8",
-    "nodulator-account": "0.0.2"
+    "nodulator-account": "0.0.2",
+    "bigint": "*"
   }
 }
