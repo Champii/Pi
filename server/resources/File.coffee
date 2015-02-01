@@ -32,7 +32,7 @@ class FileRoute extends Nodulator.Route
         name: req.files.file.name
         client_id: parseInt req.body.client_id, 10
         percentage: 0
-        storeLevel: 2
+        storeLevel: 4
         idxStoreLevel: 0
         size: req.files.file.size
         piSize: 0
@@ -92,6 +92,10 @@ class File extends Nodulator.Resource 'file', FileRoute
       piFS.BufferToArray32 fs.readFileSync config.hashsPath + @client_id + '/' + @id
     else
       false
+
+  ToJSON: ->
+    _(super()).extend
+      percentage: Math.floor @percentage
 
 File.Init()
 

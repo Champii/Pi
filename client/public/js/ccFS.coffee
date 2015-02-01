@@ -1,19 +1,11 @@
-_ = require 'underscore'
-
-ccChunkSize = 5000000
-
-# DigitNbWithin_ = (n) ->
-#  (9 * (Math.pow(10, n) * (n + 1)) - Math.pow(10, n + 1) + 1) / 9
-
-# Idx_ = (x) ->
-#   len = ('' + x).length
-#   (DigitNbWithin_(len - 1) + 1) + ((x - Math.pow(10, len - 1)) * len)
+_ = require?('underscore')
 
 class CcFS
 
-  GetHash: (fileBuffer, chunkSize, offset, done) ->
+  GetHash: (fileBuffer, chunkSize, done) ->
     seqs = @_MakeSeqs fileBuffer, chunkSize
-    @_FindAllSequences seqs, offset, done
+    _.defer =>
+      @_FindAllSequences seqs, done
 
   GetFile: (idxs, chunksize, done) ->
     res = new Buffer(idxs.length * chunkSize)
@@ -31,8 +23,7 @@ class CcFS
 
   _DigitNbWithin: (n) -> (9 * (Math.pow(10, n) * (n + 1)) - Math.pow(10, n + 1) + 1) / 9
 
-  _GetContainingDigit: (a, nth) ->
-    Math.pow(10, a + 1) - 1 - Math.floor((@_DigitNbWithin(a + 1) - nth) / (a + 1))
+  _GetContainingDigit: (a, nth) -> Math.pow(10, a + 1) - 1 - Math.floor((@_DigitNbWithin(a + 1) - nth) / (a + 1))
 
   _GetDigitPos: (a, nth) -> (@_DigitNbWithin(a + 1) - nth) % (a + 1)
 
@@ -48,25 +39,22 @@ class CcFS
     digitPos = @_GetDigitPos itv, nth
     (containingDigit + '')[(containingDigit + '').length - digitPos - 1]
 
-  _FindAllSequences: (seqs, offset, done) ->
+  _FindAllSequences: (seqs, done) ->
     buff = ''
     res = []
-    i = offset
+    i = 0
     elemCount = 0
-    count = 0
 
     while buff.length < seqs[0].length
       buff += @_GetDigitAt i++
 
-    while elemCount < seqs.length and count < ccChunkSize # TEMP VALUE
+    while elemCount < seqs.length
       while (idx = seqs.indexOf buff) isnt -1
         if not res[idx]
           elemCount++
           res[idx] = i - buff.length
-
-        process.stdout.cursorTo(0)
-        process.stdout.write "Found: " + (elemCount / seqs.length * 100).toFixed(2) + '%'
-        process.stdout.write " Bytes tested: " + (count / ccChunkSize * 100).toFixed(2) + '%'
+          process.stdout.cursorTo(0)
+          process.stdout.write (elemCount / seqs.length * 100).toFixed(2) + '%'
         seqs[idx] = ''
 
       arrBuff = buff.split('')
@@ -75,9 +63,6 @@ class CcFS
       buff = arrBuff.join('')
 
       i++
-      count++
-
-    console.log 'Res !', res
     done null, res
 
   _MakeSeqs: (file, chunkSize) ->
