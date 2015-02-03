@@ -1,0 +1,204 @@
+fs = require 'fs'
+zlib = require 'zlib'
+bigint = require 'bigint'
+int_encode = require 'int-encoder'
+
+tmp = 0
+
+deltaCompress = (str) ->
+  res = []
+  last = 0
+  for c, i in str
+    res.push c - last
+    last = c
+  new Buffer res
+
+deltaDecompress = (buff) ->
+  res = []
+  last = 0
+  # console.log buff.length
+  i = 0
+  while i < buff.length
+    c = buff[i]
+    if c > 10
+      c = -Math.abs(c - 256)
+      # console.log c
+    res.push c + last + 48
+    last = c + last
+    i++
+  new Buffer res
+
+# str = bigint([0..200].join('')).toString()
+
+# file = fs.readFileSync(process.argv[2])
+# test = (base) ->
+#   if base > 10
+#     return
+
+#   console.log 'trying base', base
+#   console.log 'original    :', file.length, file
+#   str = bigint.fromBuffer(file).toString(base)
+
+#   console.log 'string      :', file.length
+#   compressed = deltaCompress str
+#   console.log 'compressed1 :', compressed.length
+
+#   zlib.gzip compressed, (err, compressed2) ->
+#     return console.error err if err?
+
+#     console.log 'compressed2 :', compressed2.length
+#     console.log 'ratio       :', (100 - ((compressed2.length / file.length) * 100)).toFixed(2) + '%'
+
+#     zlib.gunzip compressed2, (err, uncompressed) ->
+#       return console.error err if err?
+#       console.log 'lol'
+#       uncompressed2 = deltaDecompress uncompressed
+#       console.log 'uncompressed:', uncompressed2.length, uncompressed2
+#       console.log bigint(uncompressed2.toString(), base).toBuffer().toString()
+#       console.log ''
+#       # test base + 1
+
+# test 2
+# decompressed = decompressString compressed
+# console.log 'decompressed : ', decompressed.length, decompressed
+
+
+# alphabet = '0123456789abcdef'
+
+# compressString = (str) ->
+#   res = new Buffer Math.ceil(str.length / 2)
+#   i = 0
+
+#   if str.length % 2
+#     str = 0 + str
+
+#   while i < str.length
+#     res[Math.floor(i / 2)] = (alphabet.indexOf(str[i]) << 4) + alphabet.indexOf(str[i + 1])
+#     i += 2
+
+#   res
+
+# decompressString = (buff) ->
+#   res = ''
+#   for c, i in buff
+#     res += alphabet[((c & 0xf0) >> 4)]
+#     res += alphabet[(c & 0x0f)]
+#   res
+
+# str = bigint([0..200].join('')).toString()
+
+# console.log 'original :     ', str.length, str
+# compressed = compressString str
+# console.log 'compressed :   ', compressed.length, compressed.toString('hex')
+# decompressed = decompressString compressed
+# console.log 'decompressed : ', decompressed.length, decompressed
+
+class CcFS
+
+  base: 2
+
+  GetHash: (file, done) ->
+    zlib.gzip file, (err, compressed) =>
+      return done err if err?
+
+      @_GetHash bigint.fromBuffer(compressed), done
+
+  GetFile: (hash, done) ->
+    zlib.gunzip hash.idx, (err, uncompressed) =>
+
+      idx = deltaDecompress uncompressed
+
+      file = @_GetFile
+        idx: bigint idx.toString(), @base
+        size: bigint hash.size
+
+      zlib.gunzip file.toBuffer(), (err, uncompressed) =>
+        return done err if err?
+
+        done null, uncompressed
+
+  _GetHash: (int, done) ->
+    hash = @__GetHash int
+
+    compressed = deltaCompress hash.toString(@base)
+
+    zlib.gzip compressed, (err, compressed2) =>
+      return done err if err?
+
+      tmp++
+      if compressed2.length < int.bitLength() / 8 and tmp < 3
+        compressedInt = bigint.fromBuffer compressed2
+        return @_GetHash compressedInt, done
+
+      done null,
+        idx: compressed2
+        size: int.toString().length
+
+  __GetHash: (file) ->
+    len = bigint file.toString().length
+    (@_DigitNbWithin(len.sub(1)).add(1)).add((len.mul(file.sub((bigint(10).pow(len.sub(1)))))))
+
+  _GetFile: (hash) ->
+    iOrig = bigint(hash.idx)
+    i = bigint(hash.idx)
+    res = ''
+    while i.lt(iOrig.add(hash.size))
+      nb = @_GetNumberAt(i).toString()
+      res += nb
+      i = i.add(nb.length)
+
+    res = res.substring 0, @_DigitNbWithin @_FindLowestInterval hash.idx
+    bigint res
+
+  _DigitNbWithin: (n) ->
+    ((((bigint(10).pow(n)).mul(9)).mul(n.add(1))).sub(bigint(10).pow(n.add(1))).add(1)).div(9)
+
+  _GetContainingDigit: (a, nth) ->
+    bigint(10).pow(a.add(1)).sub(1).sub((@_DigitNbWithin(a.add(1)).sub(nth)).div(a.add(1)))
+
+  _GetDigitPos: (a, nth) ->
+    (@_DigitNbWithin(a.add(1)).sub(nth)).mod((a.add(1)))
+
+  _FindLowestInterval: (nth) ->
+    i = bigint nth.toString().length - 10
+    while @_DigitNbWithin(i).lt(nth)
+      i = i.add(1)
+    i.sub(1)
+
+  # Unused
+  _GetDigitAt: (nth) ->
+    return 0 if nth.eq(0)
+    itv = @_FindLowestInterval nth
+    containingDigit = @_GetContainingDigit itv, nth
+    digitPos = @_GetDigitPos itv, nth
+    digit = containingDigit.toString()
+    digit[bigint(digit.length).sub(digitPos).sub(1)]
+
+  _GetNumberAt: (idx) ->
+    @_GetContainingDigit @_FindLowestInterval(idx), idx
+
+# module.exports = new CcFS
+
+
+ccFS = new CcFS
+
+ratios = {}
+testBase = (base) ->
+  if base > 10
+    console.log ratios
+    return
+  ccFS.base = base
+  fs.readFile process.argv[2], {encoding: null}, (err, file) ->
+    return console.error err if err?
+
+    ccFS.GetHash file, (err, hash) ->
+      return console.log err if err?
+
+      # ccFS.GetFile hash, (err, file2) ->
+      #   return console.log err if err?
+
+      ratios[base] = (100 - (hash.idx.length / file.length * 100)).toFixed(2) + '%'
+      console.log 'Ratio', base, ratios[base]
+      testBase base + 1
+
+testBase 2
