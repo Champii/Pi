@@ -1,32 +1,139 @@
+_ = require 'underscore'
 fs = require 'fs'
 zlib = require 'zlib'
 bigint = require 'bigint'
 int_encode = require 'int-encoder'
 
-tmp = 0
+# tmp = 0
 
-deltaCompress = (str) ->
-  res = []
-  last = 0
-  for c, i in str
-    res.push c - last
-    last = c
-  new Buffer res
+# entropy = (s) ->
+#   freq = (s) ->
+#     result = {}
+#     for ch in s.split ""
+#       result[ch] ?= 0
+#       result[ch]++
+#     return result
 
-deltaDecompress = (buff) ->
-  res = []
-  last = 0
-  # console.log buff.length
-  i = 0
-  while i < buff.length
-    c = buff[i]
-    if c > 10
-      c = -Math.abs(c - 256)
-      # console.log c
-    res.push c + last + 48
-    last = c + last
-    i++
-  new Buffer res
+#   frq = freq s
+#   n = s.length
+#   ((frq[f]/n for f of frq).reduce ((e, p) -> e - p * Math.log(p)), 0) * Math.LOG2E
+
+
+# file = fs.readFileSync process.argv[2]
+# console.log file.length, entropy file.toString()
+# zlib.gzip file, (err, compressed) ->
+#   console.log compressed.length, entropy compressed.toString()
+#   int = bigint.fromBuffer compressed
+#   console.log int.bitLength() / 8, entropy int.toString()
+#   bInt = new Buffer int.toString(2)
+#   console.log bInt.length, entropy bInt.toString()
+#   xord = xor bInt
+#   console.log xord.length, entropy xord.toString()
+
+# alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+# console.log entropy alphabet
+
+# xor = (buffer) ->
+#   res = new Buffer buffer.length
+#   for c, i in buffer
+#     # c = alphabet.indexOf c
+#     j = 7
+#     last = (if c & (1 << j) then 1 else 0)
+#     n = last << j--
+#     while j + 1
+#       b = (if c & (1 << j) then 1 else 0)
+#       n = n | (last ^ b) << j
+#       last = b
+#       j--
+#     # console.log 'TEST', c
+#     res[i] = n
+#   res
+
+# unxor = (buffer) ->
+#   res = new Buffer buffer.length
+#   for c, i in buffer
+#     j = 7
+#     last = (if c & (1 << j) then 1 else 0)
+#     n = last << j--
+#     while j + 1
+#       b = (if c & (1 << j) then 1 else 0)
+#       n = n | (last ^ b) << j
+#       last = (last ^ b)
+#       j--
+#     res[i] = n
+#   res
+
+# buff = new Buffer 1#[0..10].join('')
+# file = fs.readFileSync process.argv[2]
+# console.log 'file  ', file, file.length, entropy file.toString()
+
+# zlib.gzip file, (err, compressed) ->
+#   return console.error err if err?
+
+#   console.log 'compressed1  ', compressed.length, entropy compressed.toString()
+
+#   # based = compressed.toString()
+
+#   # console.log 'based', based.length, entropy based.toString()
+
+#   xord = xor compressed
+
+#   console.log 'xord', xord.length, entropy xord.toString()
+#   # based = xord.toString('base64')
+
+#   # console.log 'based', based.length
+#   # int = bigint.fromBuffer xord
+
+#   zlib.gzip xord, (err, compressed2) ->
+#     return console.error err if err?
+
+#     console.log 'compressed2 ', compressed2.length, entropy compressed2.toString()
+
+#     zlib.gunzip compressed2, (err, uncompressed) ->
+#       return console.error err if err?
+
+#       console.log 'uncompressed1', uncompressed.length, entropy uncompressed.toString()
+
+#       unxord = unxor uncompressed
+
+#       console.log 'unxord', unxord.length, entropy unxord.toString()
+
+#       unbased = new Buffer unxord, 'base64'
+
+#       console.log 'unbased', unbased, unbased.length, entropy unbased.toString()
+
+#       res = new Buffer unxord.toString(), 'base64'
+#       console.log res
+#       # console.log 'file  ', uncompressed.toString()
+
+# alphabet = '0123456789abcdef'
+
+# deltaCompress = (str) ->
+#   res = []
+#   last = 0
+#   # console.log 'tocompress', str
+#   for c, i in str
+#     idx = alphabet.indexOf c
+#     res.push idx - last
+#     last = idx
+#   # console.log 'delta = ', res
+#   new Buffer res
+
+# deltaDecompress = (buff) ->
+#   res = []
+#   last = 0
+#   # console.log buff.length
+#   i = 0
+#   while i < buff.length
+#     c = buff[i]
+#     if c > 16
+#       c = -Math.abs(c - 256)
+#     # console.log alphabet[c + last]
+#     res.push alphabet[c + last]
+#     last = c + last
+#     i++
+#   # console.log new Buffer(res.join('')).toString()
+#   new Buffer(res.join('')).toString()
 
 # str = bigint([0..200].join('')).toString()
 
@@ -95,9 +202,8 @@ deltaDecompress = (buff) ->
 
 class CcFS
 
-  base: 2
-
   GetHash: (file, done) ->
+    console.log 'original size        : ', file.length
     zlib.gzip file, (err, compressed) =>
       return done err if err?
 
@@ -108,9 +214,13 @@ class CcFS
 
       idx = deltaDecompress uncompressed
 
+      # console.log idx.toString()
+      # console.log bigint idx.toString(), @base
       file = @_GetFile
         idx: bigint idx.toString(), @base
         size: bigint hash.size
+
+      # console.log file
 
       zlib.gunzip file.toBuffer(), (err, uncompressed) =>
         return done err if err?
@@ -118,15 +228,23 @@ class CcFS
         done null, uncompressed
 
   _GetHash: (int, done) ->
+    console.log 'first compression    : ', int.bitLength() / 8
     hash = @__GetHash int
 
+    console.log 'after hash           : ', hash.bitLength() / 8
+
     compressed = deltaCompress hash.toString(@base)
+
+    console.log 'delta compress       : ', compressed.length
 
     zlib.gzip compressed, (err, compressed2) =>
       return done err if err?
 
+      console.log 'second compression   : ', compressed2.length
+
       tmp++
-      if compressed2.length < int.bitLength() / 8 and tmp < 3
+      console.log compressed2.length < (int.bitLength() / 8) and tmp < 1, tmp
+      if compressed2.length < int.bitLength() / 8 and tmp < 1
         compressedInt = bigint.fromBuffer compressed2
         return @_GetHash compressedInt, done
 
@@ -134,7 +252,30 @@ class CcFS
         idx: compressed2
         size: int.toString().length
 
+# FIXME: cannot found minimum idx for : (1)'1121'(3) for exemple (111213 offset'd by 1)
   __GetHash: (file) ->
+    str = file.toString()
+    i = 0
+    test = bigint '0'
+    while str[i]?
+      test = test.mul(10).add(str[i])
+      idx = @___GetHash test
+      # console.log str[i], idx
+      j = 0
+      next = @_GetDigitAt idx.add(i + j)
+
+      while next + '' is str[i + j] and str[i + j]?
+        j++
+        if not str[i + j]?
+          break
+        next = @_GetDigitAt bigint(idx.add(i + j))
+
+      if (i + j) is str.length
+        return idx
+
+      i++
+
+  ___GetHash: (file) ->
     len = bigint file.toString().length
     (@_DigitNbWithin(len.sub(1)).add(1)).add((len.mul(file.sub((bigint(10).pow(len.sub(1)))))))
 
@@ -147,7 +288,8 @@ class CcFS
       res += nb
       i = i.add(nb.length)
 
-    res = res.substring 0, @_DigitNbWithin @_FindLowestInterval hash.idx
+    # res = res.substring 0, @_DigitNbWithin @_FindLowestInterval hash.idx
+    res = res.substring 0, hash.size
     bigint res
 
   _DigitNbWithin: (n) ->
@@ -177,28 +319,218 @@ class CcFS
   _GetNumberAt: (idx) ->
     @_GetContainingDigit @_FindLowestInterval(idx), idx
 
-# module.exports = new CcFS
 
 
 ccFS = new CcFS
+module.exports = ccFS
 
-ratios = {}
-testBase = (base) ->
-  if base > 10
-    console.log ratios
-    return
-  ccFS.base = base
-  fs.readFile process.argv[2], {encoding: null}, (err, file) ->
-    return console.error err if err?
+######
+#fast generation
+######
+generateCC = (start, len) ->
+  res = ''
+  i = start
+  while res.length < len
+    res += i
+    i++
+  return res.substr(0, len)
 
-    ccFS.GetHash file, (err, hash) ->
-      return console.log err if err?
+file = bigint.fromBuffer(fs.readFileSync process.argv[2], {encoding: null}).toString()
+console.log file
+fileLen = file.length
+fileParts = [file]
 
-      # ccFS.GetFile hash, (err, file2) ->
-      #   return console.log err if err?
+# FIXME: DEBUG EVERYTHING !!!!!!!!!!!!!!!!!!!
 
-      ratios[base] = (100 - (hash.idx.length / file.length * 100)).toFixed(2) + '%'
-      console.log 'Ratio', base, ratios[base]
-      testBase base + 1
+findInPart = (part) ->
+  for len in [part.length..1]
+    # iMax = 0
+    # for i in [0..len]
+    #   iMax *= 10
+    #   iMax += 9
+    # for i in [1..Math.pow(10, len) - 1]
+    for i in [1..10]
+      toTest = generateCC i, len
+      # console.log toTest
+      if (idx = part.indexOf toTest) isnt -1
+        # console.log 'p', part, idx, toTest
+        stay = [part.substr(0, idx), part.substr(idx + len)]
+        stay = [stay[1]] if stay[0] is ''
+        stay = [stay[0]] if stay[1] is ''
 
-testBase 2
+        return {
+          idx: bigint i
+          len: len
+          stay: stay
+        }
+    # console.log 'len', len
+
+func = (fileParts, arr) ->
+  # console.log fileParts
+  for part in fileParts
+    if part is ''
+      continue
+    res = findInPart part
+    if not res?
+      return arr
+    console.log res
+    arr.push func res.stay, arr
+  arr
+
+console.log func fileParts, []
+########
+
+
+
+
+
+
+# split = (n) ->
+#   str = file.toString()
+#   res = []
+#   i = 0
+#   for _ in [0...str.length / n]
+#     res.push str[i...n + i]
+#     i += n
+#   console.log res
+#   res
+
+# file = bigint.fromBuffer(fs.readFileSync process.argv[2], {encoding: null}).toString()
+# console.log file
+# toTest = ''
+
+# res = []
+# fcn = ->
+#   str = ''
+#   i = 0
+#   len = 0
+#   while len isnt -1
+#     str += file[i++]
+#     found = ccFS.__GetHash bigint str
+#     len = found.toString().length
+
+#     # console.log str, found, str.length, len
+
+#     if len < str.length
+#       res.push
+#         idx: found
+#         size: str.length
+
+#       str = ''
+#       file = file[i..]
+#       console.log file
+#       i = 0
+#       if not file.length
+#         return
+
+#     if i >= file.length
+#       len = -1
+#       if not str.length
+#         return
+#       res.push
+#         idx: ccFS.__GetHash bigint str[0]
+#         size: 1
+
+#       file = file[1..]
+#       fcn()
+
+# fcn()
+
+# console.log res
+
+
+
+
+
+
+# testParts = (n) ->
+#   if n <= 1
+#     return console.error 'End'
+#   toFind = split n
+#   for item in toFind
+
+#     found = ccFS.__GetHash bigint item
+#     if bigint(item).bitLength() < found.bitLength()
+#       return testParts Math.floor(n / 2)
+#     else
+#       console.log 'LOL', item, bigint(item).bitLength(),  found.bitLength()
+#   return '1'
+
+
+# testParts file.toString().length
+
+
+
+########
+#generate every smaller index than input
+########
+# lessLengths = []
+# moreLengths = []
+# eqLengths = []
+# tmp = bigint 0
+# for i in [0...100000]
+# # for i in [100..100]
+
+#   # toFind = bigint.fromBuffer fs.readFileSync process.argv[2], {encoding: null}
+#   toFind = bigint i + ''
+#   # console.log 'to find', toFind, toFind.toString().length
+#   found = ccFS.__GetHash toFind
+#   # console.log 'found', found, found.toString().length
+
+#   toAdd = null
+#   # if toFind.toString().length < found.toString().length
+#   #   toAdd = moreLengths
+#   # else if toFind.toString().length is found.toString().length
+#   #   toAdd = eqLengths
+#   if toFind.toString().length > found.toString().length
+#     toAdd = lessLengths
+#     console.log
+#       orig: toFind.toString()
+#       found: found.toString()
+#       diff: toFind.sub(tmp).toString()
+#       # size: found.bitLength()
+#       gain: toFind.bitLength() - found.bitLength()
+#       # foundLength: found.bitLength()
+#     tmp = toFind
+
+
+
+#   # reverse = ccFS._GetFile
+#   #   idx: found
+#   #   size: toFind.toString().length
+#   # if not reverse.eq toFind
+#   #   console.log 'reverse: ', toFind, reverse
+#   #   return console.log 'BAD !'
+#   #   else
+#   #     console.log 'Not bad'
+
+# lessLengths = _(lessLengths).sort (item) ->
+#   console.log item.gain
+#   item.gain
+
+# console.log 'less', lessLengths, lessLengths.length
+# console.log 'eq', eqLengths.length
+# console.log 'more', moreLengths.length
+#########
+
+# ratios = {}
+# testBase = (base) ->
+#   if base > 16
+#     console.log ratios
+#     return
+#   ccFS.base = base
+#   fs.readFile process.argv[2], {encoding: null}, (err, file) ->
+#     return console.error err if err?
+
+#     ccFS.GetHash file, (err, hash) ->
+#       return console.log err if err?
+
+#       # ccFS.GetFile hash, (err, file2) ->
+#       #   return console.log err if err?
+
+#       ratios[base] = (100 - (hash.idx.length / file.length * 100)).toFixed(2) + '%'
+#       console.log 'Ratio', base, ratios[base]
+#       # console.log file, file2
+#       testBase base + 1
+
+# testBase 2
