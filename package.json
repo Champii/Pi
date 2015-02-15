@@ -1,12 +1,24 @@
 {
   "name": "app",
   "version": "0.0.3",
+  "scripts": {
+    "start": "./node_modules/.bin/coffee main.coffee"
+  },
   "dependencies": {
-    "nodulator": "0.0.9",
-    "nodulator-socket": "0.0.3",
-    "nodulator-assets": "0.0.8",
-    "nodulator-angular": "0.0.8",
+    "async": "^0.9.0",
+    "buffertools": "^2.1.2",
+    "coffee-script": "^1.9.0",
+    "connect-multiparty": "^1.2.5",
+    "jade": "^1.9.2",
+    "mime": "^1.3.4",
+    "nodulator": "0.0.10",
     "nodulator-account": "0.0.2",
-    "bigint": "*"
+    "nodulator-angular": "0.0.10",
+    "nodulator-assets": "0.0.8",
+    "nodulator-socket": "0.0.3",
+    "redis": "^0.12.1",
+    "settings": "^0.1.1",
+    "underscore": "^1.7.0",
+    "bigint": "~0.4.2"
   }
 }
