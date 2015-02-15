@@ -10,19 +10,7 @@ Nodulator = require 'nodulator'
 Settings = require 'settings'
 config = new Settings(require '../../settings/config')
 
-piFS = require '../storage'
-
-
-getFile = (file) ->
-  res = null
-  if file.isIndexed
-    res = piFS.GetFile file.GetHash(), file.idxStoreLevel
-    hash = piFS.BufferToArray32 res
-    res = piFS.GetFile hash, file.storeLevel
-  else
-    res = piFS.GetFile file.GetHash(), file.storeLevel
-
-  res
+ccFS = require '../storage/ccFS'
 
 class FileRoute extends Nodulator.Route
   Config: ->
@@ -33,10 +21,11 @@ class FileRoute extends Nodulator.Route
         name: req.files.file.name
         client_id: parseInt req.body.client_id, 10
         percentage: 0
-        storeLevel: 2
+        storeLevel: 4
         idxStoreLevel: 0
         size: req.files.file.size
         piSize: 0
+        uncompressSize: 0
         isIndexed: false
         maxLevel: false
       File.Deserialize toSave, (err, file) ->
@@ -45,21 +34,18 @@ class FileRoute extends Nodulator.Route
         file.Save (err) ->
           return res.status(500).send err if err?
 
-          console.log 'Original file size', file.size
-          zlib.gzip fs.readFileSync(req.files.file.path), (err, compressed) ->
+          ccFS.GetHash fs.readFileSync(req.files.file.path), (err, hash) =>
             return res.status(500).send err if err?
 
-            console.log 'Compressed file size', compressed
+            fs.writeFileSync config.hashsPath + file.client_id + '/' + file.id, hash.idx
 
-            fs.writeFileSync req.files.file.path, compressed
+            file.uncompressSize = hash.size
+            file.piSize = hash.idx.length
 
-            FileCluster.NewFile file.id, req.files.file.path, compressed.length, (err) ->
+            file.Save (err) ->
               return res.status(500).send err if err?
-              console.log 'lol'
 
               res.status(200).send file
-
-            # Nodulator.bus.emit 'calc_hash', file, req.files.file.path, config.hashsPath + file.client_id + '/' + file.id
 
     @Get '/:id', (req, res) ->
       File.Fetch req.params.id, (err, file) ->
@@ -69,10 +55,13 @@ class FileRoute extends Nodulator.Route
 
         res.setHeader('Content-disposition', 'attachment; filename=' + file.name);
         res.setHeader('Content-type', mimetype);
-        zlib.gunzip getFile(file), (err, f) ->
+        ccFS.GetFile
+          idx: fs.readFileSync config.hashsPath + file.client_id + '/' + file.id
+          size: file.uncompressSize
+        , (err, file) =>
           return res.status(500).send err if err?
 
-          res.status(200).write(f, 'binary')
+          res.status(200).write(file, 'binary')
           res.end()
 
     @Put '/:id', (req, res) ->
@@ -88,11 +77,9 @@ class FileRoute extends Nodulator.Route
 
 class File extends Nodulator.Resource 'file', FileRoute
 
-  GetHash: ->
-    if @storeLevel
-      piFS.BufferToArray32 fs.readFileSync config.hashsPath + @client_id + '/' + @id
-    else
-      false
+  ToJSON: ->
+    _(super()).extend
+      percentage: Math.floor @percentage
 
 File.Init()
 

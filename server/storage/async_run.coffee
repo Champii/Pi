@@ -1,8 +1,8 @@
 fs = require 'fs'
-piFS = require './'
+ccFS = require './ccFS'
 
 
-piFS._GetHash process.argv[2], process.argv[3], parseInt(process.argv[4], 10)
+ccFS._GetHash process.argv[2], process.argv[3], parseInt(process.argv[4], 10)
 
 # piFS.GetHash process.argv[2], process.argv[3], parseInt(process.argv[4], 10), (err, hash) ->
 
